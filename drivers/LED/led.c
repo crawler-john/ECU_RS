@@ -14,9 +14,9 @@
 /*****************************************************************************/
 #include <stm32f10x.h>
 
-#define led1_rcc                    RCC_APB2Periph_GPIOC
-#define led1_gpio                   GPIOC
-#define led1_pin                    (GPIO_Pin_9)
+#define led1_rcc                    RCC_APB2Periph_GPIOA
+#define led1_gpio                   GPIOA
+#define led1_pin                    (GPIO_Pin_11)
 
 void rt_hw_led_init(void)
 {

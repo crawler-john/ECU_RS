@@ -254,7 +254,7 @@ void I2C_Init(void)
 
 	RCC_APB2PeriphClockCmd(EEPROM_RCC,ENABLE);
 	GPIO_InitStructure.GPIO_Pin = SCL_PIN;        //选中管脚1
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;      //推挽输出
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;      //推挽输出
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;   //最高输出速率50MHz
 	GPIO_Init(SCL_GPIO, &GPIO_InitStructure);
 
