@@ -1,17 +1,16 @@
-//#include "Header.h"
-//#include "extern_var.h"
 #include <stm32f10x.h>
 #include "Flash_24L512.h"
+#include "delay.h"
 //============================================================================
 #define EEPROM_RCC              	RCC_APB2Periph_GPIOB
 #define SCL_GPIO                	GPIOB
-#define SCL_PIN                 	(GPIO_Pin_0)
+#define SCL_PIN                 	(GPIO_Pin_6)
 
 #define SDA_GPIO                	GPIOB
-#define SDA_PIN										(GPIO_Pin_1)
+#define SDA_PIN										(GPIO_Pin_7)
 
 #define WP_GPIO                   GPIOB
-#define WP_PIN                		(GPIO_Pin_10)
+#define WP_PIN                		(GPIO_Pin_5)
 
 #define  SDA_1    GPIO_SetBits(SDA_GPIO, SDA_PIN)
 #define  SDA_0    GPIO_ResetBits(SDA_GPIO, SDA_PIN)
@@ -253,8 +252,9 @@ void I2C_Init(void)
 	GPIO_InitTypeDef GPIO_InitStructure;
 
 	RCC_APB2PeriphClockCmd(EEPROM_RCC,ENABLE);
+	
 	GPIO_InitStructure.GPIO_Pin = SCL_PIN;        //选中管脚1
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;      //推挽输出
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;      //推挽输出
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;   //最高输出速率50MHz
 	GPIO_Init(SCL_GPIO, &GPIO_InitStructure);
 
@@ -268,4 +268,3 @@ void I2C_Init(void)
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;   //最高输出速率50MHz
 	GPIO_Init(WP_GPIO, &GPIO_InitStructure);
 }
-

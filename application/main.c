@@ -4,6 +4,9 @@
 #include "sys.h"
 #include "usart.h"
 #include "Flash_24L512.h"
+#include "SEGGER_RTT.h"
+#include "led.h"
+
 //ALIENTEK战舰STM32开发板实验4
 //串口实验  
 //技术支持：www.openedv.com
@@ -11,19 +14,31 @@
  int main(void)
  {	
 
-	 
-  unsigned char sendbuff[11] = "qasdasdasd";
-	unsigned char recvbuff[11];
 	delay_init();	    	 //延时函数初始化	  
 	NVIC_Configuration(); 	 //设置NVIC中断分组2:2位抢占优先级，2位响应优先级
-	uart_init(9600);	 //串口初始化为9600
-	
 	I2C_Init();
-	Write_24L512_nByte(0x000000,10,sendbuff);
-	 printf("\nWrite_24L512_nByte:%s \n",sendbuff);
+	rt_hw_led_init();
+	
+	while(1)
+	{
+		rt_hw_led_on();
+		SEGGER_RTT_printf(0,"rt_hw_led_on\n");
+		delay_ms(1000);
+		rt_hw_led_off();
+		SEGGER_RTT_printf(0,"rt_hw_led_off\n");	
+		delay_ms(1000);
+		
+	}
+
+	
+
+	
+
+	
+
 	 
-	Read_24L512_nByte(0x000000,10,recvbuff);
-	printf("\nRead_24L512_nByte:%s \n",recvbuff);
+	
+
 	 
  }
 
