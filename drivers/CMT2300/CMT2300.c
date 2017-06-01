@@ -4,27 +4,6 @@
 #include "CMT2300.h"
 #include "string.h"
 #include "delay.h"
-#include <stm32f10x.h>
-
-#define RFM300M_SDIO_RCC       	RCC_APB2Periph_GPIOB
-#define SDIO_GPIO            		GPIOB
-#define SDIO_PIN               	(GPIO_Pin_14)
-
-#define RFM300M_CSB_RCC         RCC_APB2Periph_GPIOB
-#define CSB_GPIO              	GPIOB
-#define CSB_PIN               	(GPIO_Pin_13)
-
-#define RFM300M_SCK_RCC     		RCC_APB2Periph_GPIOB
-#define SCK_GPIO               	GPIOB
-#define SCK_PIN             		(GPIO_Pin_12)
-
-#define RFM300M_FCSB_RCC     		RCC_APB2Periph_GPIOB
-#define FCSB_GPIO            		GPIOB
-#define FCSB_PIN             		(GPIO_Pin_10)
-
-#define RFM300M_GPIO3_RCC      	RCC_APB2Periph_GPIOB
-#define GPIO3_GPIO             	GPIOB
-#define GPIO3_PIN              	(GPIO_Pin_11)
 
 byte cmt2300A_para[FTP8_LENGTH]=
 {
@@ -149,7 +128,7 @@ void InputSDA(void)
 
 	RCC_APB2PeriphClockCmd(RFM300M_SDIO_RCC,ENABLE);
 	GPIO_InitStructure.GPIO_Pin = SDIO_PIN;        
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;      //推挽输出
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;      //浮空输入
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;   //最高输出速率50MHz
 	GPIO_Init(SDIO_GPIO, &GPIO_InitStructure);
 }
@@ -189,14 +168,18 @@ void Spi3Init(void)
 	GPIO_Init(FCSB_GPIO, &GPIO_InitStructure);
 	
 	RCC_APB2PeriphClockCmd(RFM300M_GPIO3_RCC,ENABLE);
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;      //推挽输出
 	GPIO_InitStructure.GPIO_Pin = GPIO3_PIN;        
 	GPIO_Init(GPIO3_GPIO, &GPIO_InitStructure);
 	
-	
-    _CSB = 1;
-    _FCSB = 1;
-    _SDA = 1;
-    _SCL = 0;
+	SetCSB();
+	SetFCSB();
+	SetSDA();
+	ClrSCL();
+	// _CSB = 1;
+  //_FCSB = 1;
+  //_SDA = 1;
+	//_SCL = 0;
 }
 // spi read register
 byte Spi3ReadReg(byte addr)
@@ -433,7 +416,7 @@ void SoftReset(void)
 { 
 	Spi3WriteReg(CMT23_SOFTRST,0xFF);
 	// at least 10ms
-	delay_us(20); 
+	delay_ms(20); 
 }
 // disable EEPROM configuration 
 // 1 : disable EEPROM configuration ; 0 :enable EEPROM configuration
@@ -639,7 +622,7 @@ byte SendMessage(byte *p,byte len)
 	//go transmit
 
 	SetOperaStatus(MODE_GO_TX);
-	//delay_us(500);
+	//delay_ms(500);
     
     
 // verify transmit done

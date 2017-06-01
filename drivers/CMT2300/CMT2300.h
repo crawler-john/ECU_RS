@@ -4,7 +4,7 @@
 
 #if !defined(__CMT2300_H_)
 #define __CMT2300_H_
-
+#include <stm32f10x.h>
 #include <stdio.h>
 #ifndef F_CPU
 	#define F_CPU 16000000UL	//HopeDuino use 16MHz Xo
@@ -13,34 +13,56 @@
 typedef unsigned char byte;
 typedef unsigned int word;
 
+#define RFM300M_SDIO_RCC       	RCC_APB2Periph_GPIOB
+#define SDIO_GPIO            		GPIOB
+#define SDIO_PIN               	(GPIO_Pin_14)
+
+#define RFM300M_CSB_RCC         RCC_APB2Periph_GPIOB
+#define CSB_GPIO              	GPIOB
+#define CSB_PIN               	(GPIO_Pin_13)
+
+#define RFM300M_SCK_RCC     		RCC_APB2Periph_GPIOB
+#define SCK_GPIO               	GPIOB
+#define SCK_PIN             		(GPIO_Pin_12)
+
+#define RFM300M_FCSB_RCC     		RCC_APB2Periph_GPIOB
+#define FCSB_GPIO            		GPIOB
+#define FCSB_PIN             		(GPIO_Pin_10)
+
+#define RFM300M_GPIO3_RCC      	RCC_APB2Periph_GPIOB
+#define GPIO3_GPIO             	GPIOB
+#define GPIO3_PIN              	(GPIO_Pin_11)
+
+
+
 #define FTP8_LENGTH  0x60
 #define FTP16_LENGTH 0x30
 
-#define	SPI3_SPEED	1
+#define	SPI3_SPEED	4
 // spi define
-#define _CSB  PBout(13)
-#define _FCSB PBout(10)
-#define _SDA  PBout(14)
-#define _SCL  PBout(12)
-#define GPIO3 PBout(11)
+//#define _CSB  PBout(13)
+//#define _FCSB PBout(10)
+//#define _SDA  PBout(14)
+//#define _SCL  PBout(12)
+#define GPIO3 GPIO_ReadInputDataBit(GPIO3_GPIO,GPIO3_PIN)
 
-#define	SetCSB()	(_CSB = 1)
-#define	ClrCSB()	(_CSB = 0)
+#define	SetCSB()	(GPIO_SetBits(CSB_GPIO,CSB_PIN))
+#define	ClrCSB()	(GPIO_ResetBits(CSB_GPIO,CSB_PIN))
 
-#define	SetFCSB()	(_FCSB = 1)
-#define	ClrFCSB()	(_FCSB = 0)
+#define	SetFCSB()	(GPIO_SetBits(FCSB_GPIO,FCSB_PIN))
+#define	ClrFCSB()	(GPIO_ResetBits(FCSB_GPIO,FCSB_PIN))
 
-#define	SetSCL()	(_SCL = 1)
-#define	ClrSCL()	(_SCL = 0)
+#define	SetSCL()	(GPIO_SetBits(SCK_GPIO,SCK_PIN))
+#define	ClrSCL()	(GPIO_ResetBits(SCK_GPIO,SCK_PIN))
 
-#define	SetSDA()	(_SDA = 1)
-#define	ClrSDA()	(_SDA = 0)
+#define	SetSDA()	(GPIO_SetBits(SDIO_GPIO,SDIO_PIN))
+#define	ClrSDA()	(GPIO_ResetBits(SDIO_GPIO,SDIO_PIN))
 
 void InputSDA(void);
 void	OutputSDA(void);
 
-#define	SDA_H()	(_SDA == 1)
-#define	SDA_L()	(_SDA == 0)
+#define	SDA_H()	(GPIO_ReadInputDataBit(SDIO_GPIO,SDIO_PIN) == 1)
+#define	SDA_L()	(GPIO_ReadInputDataBit(SDIO_GPIO,SDIO_PIN) == 0)
     
 //PORTB						//DDRx		PORTx		PINx
 #define _GPO1    0x01       // 0          0          0

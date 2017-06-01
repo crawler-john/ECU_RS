@@ -18,7 +18,7 @@
 #define led1_gpio                   GPIOA
 #define led1_pin                    (GPIO_Pin_11)
 
-void rt_hw_led_init(void)
+void LED_init(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
 
@@ -31,12 +31,12 @@ void rt_hw_led_init(void)
     GPIO_Init(led1_gpio, &GPIO_InitStructure);
 }
 
-void rt_hw_led_on(void)
+void LED_on(void)
 {
     GPIO_ResetBits(led1_gpio, led1_pin);
 }
 
-void rt_hw_led_off(void)
+void LED_off(void)
 {
     GPIO_SetBits(led1_gpio, led1_pin);
 }

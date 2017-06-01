@@ -16,8 +16,8 @@
 #define __LED_H__
 
 
-void rt_hw_led_init(void);	//LED初始化
-void rt_hw_led_on(void);		//LED亮
-void rt_hw_led_off(void);		//LED熄灭
+void LED_init(void);	//LED初始化
+void LED_on(void);		//LED亮
+void LED_off(void);		//LED熄灭
 
 #endif
