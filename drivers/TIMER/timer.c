@@ -1,10 +1,28 @@
+/*****************************************************************************/
+/* File      : timer.c                                                       */
+/*****************************************************************************/
+/*  History:                                                                 */
+/*****************************************************************************/
+/*  Date       * Author          * Changes                                   */
+/*****************************************************************************/
+/*  2017-06-01 * Shengfeng Dong  * Creation of the file                      */
+/*             *                 *                                           */
+/*****************************************************************************/
+/*****************************************************************************/
+/* ¶¨Ê±Æ÷2  ÓÃÓÚ10·ÖÖÓ¼ÆÊ±																								   */
+/* ¶¨Ê±Æ÷3  ÓÃÓÚ´®¿ÚÊý¾Ý½ÓÊÕ³¬Ê±µÄÊ¹ÓÃ 																		   */
+/*****************************************************************************/
+
 #include "timer.h"
 #include "led.h"
 #include "usart.h"
+#include "SEGGER_RTT.h"
 
 extern eRecvSM eStateMachine;
-extern u8 *pCur;
+extern unsigned short Cur;
 extern u8  USART_RX_BUF[USART_REC_LEN]; //½ÓÊÕ»º³å,×î´óUSART_REC_LEN¸ö×Ö½Ú.Ä©×Ö½ÚÎª»»ÐÐ·û 
+
+static signed char flag = 0;
 //Í¨ÓÃ¶¨Ê±Æ÷3ÖÐ¶Ï³õÊ¼»¯
 //ÕâÀïÊ±ÖÓÑ¡ÔñÎªAPB1µÄ2±¶£¬¶øAPB1Îª36M
 //arr£º×Ô¶¯ÖØ×°Öµ¡£
@@ -12,7 +30,7 @@ extern u8  USART_RX_BUF[USART_REC_LEN]; //½ÓÊÕ»º³å,×î´óUSART_REC_LEN¸ö×Ö½Ú.Ä©×Ö½
 //ÕâÀïÊ¹ÓÃµÄÊÇ¶¨Ê±Æ÷3!
 void TIM3_Int_Init(u16 arr,u16 psc)
 {
-    TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+  TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE); //Ê±ÖÓÊ¹ÄÜ
@@ -23,23 +41,23 @@ void TIM3_Int_Init(u16 arr,u16 psc)
 	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1; //ÉèÖÃÊ±ÖÓ·Ö¸î:TDTS = Tck_tim
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;  //TIMÏòÉÏ¼ÆÊýÄ£Ê½
 	TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure); //¸ù¾ÝÖ¸¶¨µÄ²ÎÊý³õÊ¼»¯TIMxµÄÊ±¼ä»ùÊýµ¥Î»
- 
+	
 	TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE ); //Ê¹ÄÜÖ¸¶¨µÄTIM3ÖÐ¶Ï,ÔÊÐí¸üÐÂÖÐ¶Ï
 
 	//ÖÐ¶ÏÓÅÏÈ¼¶NVICÉèÖÃ
 	NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;  //TIM3ÖÐ¶Ï
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;  //ÏÈÕ¼ÓÅÏÈ¼¶0¼¶
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;  //ÏÈÕ¼ÓÅÏÈ¼¶0¼¶
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;  //´ÓÓÅÏÈ¼¶3¼¶
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; //IRQÍ¨µÀ±»Ê¹ÄÜ
 	NVIC_Init(&NVIC_InitStructure);  //³õÊ¼»¯NVIC¼Ä´æÆ÷
-
-
-	TIM_Cmd(TIM3, ENABLE);  //Ê¹ÄÜTIMx					 
+	TIM_Cmd(TIM3, ENABLE);  //Ê¹ÄÜTIMx		
+	flag = 0;
 }
 
 void TIM3_Int_Deinit(void)
 {
-	TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE ); //Ê¹ÄÜÖ¸¶¨µÄTIM3ÖÐ¶Ï,ÔÊÐí¸üÐÂÖÐ¶Ï
+	flag = 0;
+	TIM_Cmd(TIM3, DISABLE);
 }
 
 //¶¨Ê±Æ÷3ÖÐ¶Ï·þÎñ³ÌÐò
@@ -47,9 +65,15 @@ void TIM3_IRQHandler(void)   //TIM3ÖÐ¶Ï
 {
 	if (TIM_GetITStatus(TIM3, TIM_IT_Update) != RESET)  //¼ì²éTIM3¸üÐÂÖÐ¶Ï·¢ÉúÓë·ñ
 		{
-		TIM_ClearITPendingBit(TIM3, TIM_IT_Update  );  //Çå³ýTIMx¸üÐÂÖÐ¶Ï±êÖ¾ 
-		eStateMachine = EN_RECV_ST_GET_HEAD;
-		pCur = USART_RX_BUF;
+			TIM_ClearITPendingBit(TIM3, TIM_IT_Update  );  //Çå³ýTIMx¸üÐÂÖÐ¶Ï±êÖ¾ 
+			flag++;
+			if( flag > 1)
+			{
+				//SEGGER_RTT_printf(0, "TIM3_IRQHandler\n");
+				eStateMachine = EN_RECV_ST_GET_HEAD;
+				Cur = 0;
+				TIM3_Int_Deinit();
+			}
 		}
 }
 

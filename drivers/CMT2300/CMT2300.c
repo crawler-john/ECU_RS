@@ -151,25 +151,32 @@ void Spi3Init(void)
 
 	RCC_APB2PeriphClockCmd(RFM300M_SDIO_RCC,ENABLE);
 	GPIO_InitStructure.GPIO_Pin = SDIO_PIN;        
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;      //推挽输出
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;   //最高输出速率50MHz
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;      //开漏输出
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;    //最高输出速率50MHz
 	GPIO_Init(SDIO_GPIO, &GPIO_InitStructure);
 	
 	RCC_APB2PeriphClockCmd(RFM300M_CSB_RCC,ENABLE);
-	GPIO_InitStructure.GPIO_Pin = CSB_PIN;        
+	GPIO_InitStructure.GPIO_Pin = CSB_PIN; 
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;      //推挽输出
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;    //最高输出速率50MHz	
 	GPIO_Init(CSB_GPIO, &GPIO_InitStructure);
 
 	RCC_APB2PeriphClockCmd(RFM300M_SCK_RCC,ENABLE);
-	GPIO_InitStructure.GPIO_Pin = SCK_PIN;        
+	GPIO_InitStructure.GPIO_Pin = SCK_PIN;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;      //推挽输出
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;    //最高输出速率50MHz	
 	GPIO_Init(SCK_GPIO, &GPIO_InitStructure);
 	
 	RCC_APB2PeriphClockCmd(RFM300M_FCSB_RCC,ENABLE);
-	GPIO_InitStructure.GPIO_Pin = FCSB_PIN;        
+	GPIO_InitStructure.GPIO_Pin = FCSB_PIN;      
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;      //推挽输出
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;    //最高输出速率50MHz  
 	GPIO_Init(FCSB_GPIO, &GPIO_InitStructure);
 	
 	RCC_APB2PeriphClockCmd(RFM300M_GPIO3_RCC,ENABLE);
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;      //推挽输出
-	GPIO_InitStructure.GPIO_Pin = GPIO3_PIN;        
+	GPIO_InitStructure.GPIO_Pin = GPIO3_PIN; 
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;        //上拉输入
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;   //最高输出速率50MHz 	       
 	GPIO_Init(GPIO3_GPIO, &GPIO_InitStructure);
 	
 	SetCSB();
@@ -210,7 +217,7 @@ byte Spi3ReadReg(byte addr)
 	}
 
 	//read value
-	InputSDA();
+	//InputSDA();
 	for (i=8;i>0;i--)
 	{
 		val<<=1;
@@ -291,7 +298,7 @@ byte Spi3ReadFIFOByte(void)
 	//set FCSB to low and delay
 	Spi3Init();
 	ClrFCSB();
-	InputSDA();
+	//InputSDA();
 	delay_us(SPI3_SPEED<<2);
     // read one byte
     for (i=0;i<8;i++)

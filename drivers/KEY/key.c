@@ -14,6 +14,7 @@
 /*****************************************************************************/
 #include "key.h"
 #include <stm32f10x.h>
+#include "SEGGER_RTT.h"
 
 /*****************************************************************************/
 /*  Function Implementations                                                 */
@@ -50,23 +51,30 @@ void EXTIX_Init(void)
  	EXTI_Init(&EXTI_InitStructure);	 	//根据EXTI_InitStruct中指定的参数初始化外设EXTI寄存器
 
  	NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn;			//使能按键KEY_RESET所在的外部中断通道
- 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x01;	//抢占优先级2
+ 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x00;	//抢占优先级2
  	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x03;					//子优先级3
  	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;								//使能外部中断通道
  	NVIC_Init(&NVIC_InitStructure);  
 		
 }
 
+int keyflag = 0;
 //外部中断9_5服务程序
 void EXTI9_5_IRQHandler(void)
 {
+
 	if(KEY_Reset==1)	 	 
 	{
-		//将配置文件恢复到出厂设置
-		//initPath();
-		//rt_kprintf("EXTI9_5_IRQHandler\n");  //添加恢复出厂设置的功能
-		//reboot();
-		for(;;);
+		keyflag++;
+		if(keyflag > 1)
+		{
+			//将配置文件恢复到出厂设置
+			SEGGER_RTT_printf(0, "EXTI9_5_IRQHandler \n");
+			keyflag = 0;
+			//reboot();
+		//for(;;);
+		}
+		
 	}
 	EXTI_ClearITPendingBit(EXTI_Line9); //清除LINE9上的中断标志位z  
 }
