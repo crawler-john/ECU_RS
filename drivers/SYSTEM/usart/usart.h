@@ -18,6 +18,7 @@ typedef enum
 extern unsigned char WIFI_RecvData[USART_REC_LEN];
 extern  unsigned char WIFI_Recv_Event;
 
+unsigned short packetlen(unsigned char *packet);
 int WIFI_SendData(char *data, int num);
 void uart_init(u32 bound);
 #endif

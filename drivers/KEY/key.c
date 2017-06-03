@@ -62,7 +62,6 @@ int keyflag = 0;
 //外部中断9_5服务程序
 void EXTI9_5_IRQHandler(void)
 {
-
 	if(KEY_Reset==1)	 	 
 	{
 		keyflag++;

@@ -363,7 +363,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F10X_LD, USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\Libraries\STM32F10x_StdPeriph_Driver\inc;..\Libraries\CMSIS\CM3\CoreSupport;..\Libraries\CMSIS\CM3\DeviceSupport;..\drivers\EEPROM;..\drivers\KEY;..\drivers\LED;..\drivers\SYSTEM\delay;..\drivers\SYSTEM\usart;..\drivers\SYSTEM\sys;..\DEBUG;..\drivers\CMT2300;..\drivers\TIMER;..\application\FILE</IncludePath>
+              <IncludePath>..\Libraries\STM32F10x_StdPeriph_Driver\inc;..\Libraries\CMSIS\CM3\CoreSupport;..\Libraries\CMSIS\CM3\DeviceSupport;..\drivers\EEPROM;..\drivers\KEY;..\drivers\LED;..\drivers\SYSTEM\delay;..\drivers\SYSTEM\usart;..\drivers\SYSTEM\sys;..\DEBUG;..\drivers\CMT2300;..\drivers\TIMER;..\application\FILE;..\application\APPComm;..\application\RFM300H</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -540,6 +540,26 @@
               <FileName>file.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\application\FILE\file.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>APP</GroupName>
+          <Files>
+            <File>
+              <FileName>appcomm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\APPComm\appcomm.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>RFM300H</GroupName>
+          <Files>
+            <File>
+              <FileName>RFM300H.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\RFM300H\RFM300H.c</FilePath>
             </File>
           </Files>
         </Group>
