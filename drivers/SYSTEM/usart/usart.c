@@ -80,10 +80,10 @@ void uart_init(u32 bound){
 //串口2中断服务程序
 //注意,读取USARTx->SR能避免莫名其妙的错误   	
 
-u8 WIFI_RecvData[USART_REC_LEN] = {'\0'};
-unsigned char recvFlag = 0;
+unsigned char WIFI_RecvData[USART_REC_LEN] = {'\0'};
+unsigned char WIFI_Recv_Event = 0;
 
-u8 USART_RX_BUF[USART_REC_LEN];     //接收缓冲,最大USART_REC_LEN个字节.
+unsigned char USART_RX_BUF[USART_REC_LEN];     //接收缓冲,最大USART_REC_LEN个字节.
 unsigned short Cur = 0;		//当前采值位置
 unsigned short PackLen = 0;
 eRecvSM eStateMachine = EN_RECV_ST_GET_HEAD;	//数据采集状态机
@@ -214,7 +214,7 @@ void USART2_IRQHandler(void)                	//串口1中断服务程序
 						memset(WIFI_RecvData,0x00,USART_REC_LEN);
 						memcpy(WIFI_RecvData,USART_RX_BUF,PackLen);
 						WIFI_RecvData[PackLen] = '\0';
-						recvFlag = 1;
+						WIFI_Recv_Event = 1;
 						SEGGER_RTT_printf(0, "WIFI_RecvData :%s\n",WIFI_RecvData);
 						eStateMachine = EN_RECV_ST_GET_HEAD;
 						Cur = 0;

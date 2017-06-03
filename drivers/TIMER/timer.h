@@ -1,20 +1,18 @@
 #ifndef __TIMER_H
 #define __TIMER_H
 #include "sys.h"
-//////////////////////////////////////////////////////////////////////////////////	 
-//本程序只供学习使用，未经作者许可，不得用于其它任何用途
-//ALIENTEK战舰STM32开发板
-//定时器 驱动代码	   
-//正点原子@ALIENTEK
-//技术论坛:www.openedv.com
-//修改日期:2012/9/3
-//版本：V1.0
-//版权所有，盗版必究。
-//Copyright(C) 广州市星翼电子科技有限公司 2009-2019
-//All rights reserved									  
-//////////////////////////////////////////////////////////////////////////////////   
 
 
+extern signed char COMM_Timeout_Event;
+
+//串口接收超时中断
 void TIM3_Int_Init(u16 arr,u16 psc);
 void TIM3_Int_Deinit(void); 
+
+//10分钟定时器 
+void TIM2_Int_Init(u16 arr,u16 psc);	//	TIM2_Int_Init(14999,7199);    3S产生一个中断
+void TIM2_Int_Deinit(void); 
+void TIM2_Refresh(void);
+
+
 #endif

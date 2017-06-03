@@ -8,31 +8,29 @@
 #include "led.h"
 #include "CMT2300.h"
 #include "file.h"
+#include "timer.h"
 
-
-	unsigned char mode = 0;
+unsigned char RF_leng = 0;
+extern unsigned char RFM300H_SW;
 int main(void)
 {	
-	unsigned char eepromSenddata[11] = "YUNENG APS";
-	unsigned char eepromRecvdata[11] = {'\0'};
-
+	unsigned char eepromSenddata[32] = "YUNENG APSYUNENG APSYUNENG APS1";
+	unsigned char eepromRecvdata[32] = {'\0'};	
 	unsigned char ret = 0;
-
+	
 	delay_init();	    	 //延时函数初始化	  
 	NVIC_Configuration(); 	 //设置NVIC中断分组2:2位抢占优先级，2位响应优先级
-	I2C_Init();
-	LED_init();
-	KEY_Init();//IO初始化
-	EXTIX_Init();
-	//CMT2300_init();
-	//Spi3Init();
-	uart_init(57600);	
-	SEGGER_RTT_printf(0, "init OK \n");
+//	I2C_Init();					//FLASH 芯片初始化
+//	LED_init();					//LED灯初始化
+//	KEY_Init();					//恢复出厂设置按键初始化
+//	EXTIX_Init();				//恢复出厂设置IO中断初始化
+	CMT2300_init();
+//	uart_init(57600);		//串口初始化
+//	TIM2_Int_Init(14999,7199);    //心跳包超时事件定时器初始化
+//	SEGGER_RTT_printf(0, "init OK \n");
+
 	
-	
-	
-	ret = Write_Test("yuneng APS",10);
-	SEGGER_RTT_printf(0, "Write_Test:   %d\n",ret);
+
 	/*
 	while(1)
 	{
@@ -44,33 +42,25 @@ int main(void)
 		eepromRecvdata[10] = '\0';
 		SEGGER_RTT_printf(0, "eepromRecvdata:   %s\n",eepromRecvdata);
 		delay_ms(1000);
-		delay_ms(1000);
-		delay_ms(1000);
-		delay_ms(1000);
-		
 		
 	}	
 	*/
 	
-	/*
+	
 	while(1)
 	{		
-		//SEGGER_RTT_printf(0, "mode = %d\n",mode);
-		//SendMessage(senddata,10);
-		//SEGGER_RTT_printf(0, "SendMessage OK\n");
-		//SetOperaStatus(MODE_STA_STBY);
-		//delay_ms(100);
-		//mode=Spi3ReadReg(CMT23_MODE_STA);
-		//SEGGER_RTT_printf(0, "mode = %d\n",mode);
-		//delay_ms(100);
-		SetOperaStatus(MODE_STA_SLEEP);
-		delay_ms(1000);
-		mode=Spi3ReadReg(CMT23_MODE_STA);
-		SEGGER_RTT_printf(0, "mode = %x\n",mode);
-		delay_ms(300);	
-
+	SEGGER_RTT_printf(0, "111111\n");
+		SendMessage(eepromSenddata,31);
+		RF_leng =1;
+		delay_ms(2000);
+		//RF_leng = GetMessage(eepromRecvdata);
+		//if(RF_leng)
+		//{
+		//	RF_leng = 0;
+		//	RFM300H_SW = 0;
+		//}
 	}
-	*/
+	
 	/*
 	while(1)
 	{	

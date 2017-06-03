@@ -175,7 +175,7 @@ void Spi3Init(void)
 	
 	RCC_APB2PeriphClockCmd(RFM300M_GPIO3_RCC,ENABLE);
 	GPIO_InitStructure.GPIO_Pin = GPIO3_PIN; 
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;        //上拉输入
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;        //上拉输入
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;   //最高输出速率50MHz 	       
 	GPIO_Init(GPIO3_GPIO, &GPIO_InitStructure);
 	
@@ -628,11 +628,12 @@ byte SendMessage(byte *p,byte len)
 	}
 	//go transmit
 
-	SetOperaStatus(MODE_GO_TX);
-	//delay_ms(500);
+	SetOperaStatus(MODE_STA_TX);
+	delay_ms(500);
     
     
 // verify transmit done
+	/*
 	do {
             val=GetIrqFlag_Tx();
             if (val==TX_DONE_FLAG)
@@ -642,6 +643,7 @@ byte SendMessage(byte *p,byte len)
             }
 		
 	} while(1);
+	*/
 	// go sleep mode
 	SetOperaStatus(MODE_GO_SLEEP);
 	RFM300H_SW = 0;

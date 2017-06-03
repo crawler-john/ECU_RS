@@ -29,6 +29,7 @@ void LED_init(void)
 
     GPIO_InitStructure.GPIO_Pin   = led1_pin;
     GPIO_Init(led1_gpio, &GPIO_InitStructure);
+		GPIO_SetBits(led1_gpio, led1_pin);
 }
 
 void LED_on(void)
