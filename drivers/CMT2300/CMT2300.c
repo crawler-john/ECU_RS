@@ -4,6 +4,7 @@
 #include "CMT2300.h"
 #include "string.h"
 #include "delay.h"
+#include "SEGGER_RTT.h"
 
 byte cmt2300A_para[FTP8_LENGTH]=
 {
@@ -613,11 +614,11 @@ byte SendMessage(byte *p,byte len)
 
 	SetTxpayloadLength(len);
 
-	SetOperaStatus(MODE_STA_STBY);
+	SetOperaStatus(MODE_GO_TX);	//MODE_STA_STBY
 	// verify transmit state
 	do {
 		val=GetOperaStatus();
-		if (val==MODE_STA_STBY)
+		if (val==MODE_STA_TX)		//MODE_STA_STBY
 			break;
 	} while(1);
     // write FIFO
@@ -628,7 +629,7 @@ byte SendMessage(byte *p,byte len)
 	}
 	//go transmit
 
-	SetOperaStatus(MODE_STA_TX);
+//	SetOperaStatus(MODE_STA_TX);
 	delay_ms(500);
     
     
@@ -646,26 +647,34 @@ byte SendMessage(byte *p,byte len)
 	*/
 	// go sleep mode
 	SetOperaStatus(MODE_GO_SLEEP);
-	RFM300H_SW = 0;
+	RFM300H_SW = 0;	
 	return 0x01;
 }
 // receive
 byte GetMessage(byte *p)
 {
+	int index = 0;
 	byte i=0x00;
     
 	if(RFM300H_SW==0)
 	{
 		SetOperaStatus(MODE_GO_RX);//进入接收模式
         Enable_fifo_read();
-		RFM300H_SW = 1;       
+		RFM300H_SW = 1; 	
 	}
 	if(RFM300H_SW==1)
-	{
-		if(GPIO3==1)
-			RFM300H_SW = 2;
-		else
-			return 0;
+	{	
+		for(index =0 ;index<200;index++)
+		{
+			if(GPIO3==1)
+			{
+				RFM300H_SW = 2;
+				break;
+			}
+			delay_ms(25);	
+		}
+		
+
 	}
 	if(RFM300H_SW==2)
 	{
@@ -677,7 +686,7 @@ byte GetMessage(byte *p)
 		}
         ReadRssiValue(0);
         ClearInt(0x00);
-		RFM300H_SW = 3;
+		RFM300H_SW = 0;
 		return length;
 	}
 	return 0;

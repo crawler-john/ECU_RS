@@ -118,6 +118,12 @@ int ResolveWifiPasswd(char *oldPasswd,int *oldLen,char *newPasswd,int *newLen,ch
 
 int main(void)
 {	
+//	int RF_leng;
+//	extern int RFM300H_SW;
+//	unsigned char eepromSenddata[32] = "HJJHJJHJJ HJJHJJHJJ HJJHJJHJJ ";
+//	
+//	unsigned char eepromRecvdata[32] = {'\0'};
+//	eepromSenddata[30] = 'A';
 	int Data_Len = 0,Command_Id = 0,ResolveFlag = 0,messageLen = 0;
 	
 	delay_init();	    	 					//延时函数初始化	  
@@ -128,11 +134,11 @@ int main(void)
 	EXTIX_Init();									//恢复出厂设置IO中断初始化
 	CMT2300_init();
 	uart_init(57600);							//串口初始化
-	TIM2_Int_Init(14999,7199);    //心跳包超时事件定时器初始化
+	TIM2_Int_Init(4999,7199);    //心跳包超时事件定时器初始化
 	SEGGER_RTT_printf(0, "init OK \n");
 	init_ecu();										//初始化ECU
 	init_inverter(inverterInfo);	//初始化逆变器
-	
+
 	while(1)
 	{
 		//判断是否有433模块心跳超时事件
@@ -246,7 +252,7 @@ int main(void)
 		}
 		delay_us(2);
 	}
-	
+
 	/*
 	while(1)
 	{
@@ -262,24 +268,44 @@ int main(void)
 	}	
 	*/
 	
-#if 0	
+#if 0
 	while(1)
 	{		
-		int RF_leng;
-		extern int RFM300H_SW;
-		unsigned char eepromRecvdata[32] = {'\0'};	
-		//SendMessage(eepromSenddata,31);
-		//SEGGER_RTT_printf(0, "SendMessage:%s\n",eepromSenddata);
-		//delay_ms(2000);
+		eepromSenddata[30]++;
+		if (eepromSenddata[30] > 'Z')
+		{
+			eepromSenddata[30] = 'A';
+		}
+		SendMessage(eepromSenddata,31);
+		SEGGER_RTT_printf(0, "SendMessage:%s\n",eepromSenddata);
 		RF_leng = GetMessage(eepromRecvdata);
 		if(RF_leng)
 		{
-			SEGGER_RTT_printf(0, "SendMessage:%s\n",eepromRecvdata);
+			SEGGER_RTT_printf(0, "RecvMessage 11111 :%s\n",eepromRecvdata);
 
 			RFM300H_SW = 0;
 			
 		}
+		delay_ms(1000);
 	}
+//#else
+	 while(1)
+ {  
+  delay_ms(20);
+  RF_leng = GetMessage(eepromRecvdata);
+  if(RF_leng)
+  {
+   SEGGER_RTT_printf(0, "RECVMessage:%s\n",eepromRecvdata);
+   RFM300H_SW = 0;
+  delay_ms(1800);
+ SendMessage(eepromRecvdata,31);
+  SEGGER_RTT_printf(0, "SendMessage:%s\n",eepromRecvdata);
+  
+  }
+ 
+ 
+ }
+	
 #endif 
 	/*
 	while(1)
