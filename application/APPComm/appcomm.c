@@ -26,10 +26,45 @@ void APP_Response_BaseInfo(char *ECU_NO,char *TYPE,char *SIGNAL_LEVEL,char *SIGN
 	WIFI_SendData(SendData, (37+Length));
 }
 
-//ECU-RS系统信息回应
-void APP_Response_SystemInfo(unsigned char mapflag,char * UID,char *Heart_Rate,char *Off_Times,char Mos_Status)
+//ECU-RS系统信息回应   mapflag   0表示匹配成功  1 表示匹配不成功
+void APP_Response_SystemInfo(unsigned char mapflag,inverter_info *inverter)
 {
-	
+	char SendData[MAXINVERTERCOUNT*INVERTERLENGTH + 16] = {'\0'};
+	inverter_info *curinverter = inverter;
+	int i = 0,validNum = 0;
+	int length = 0;
+	if(mapflag == 1)
+	{
+		sprintf(SendData,"APS1100130201");
+		WIFI_SendData(SendData, 13);
+	}else{
+		sprintf(SendData,"APS1100130200");   //13字节
+		for(i=0; (i<MAXINVERTERCOUNT)&&(0xff != curinverter->uid[1]); i++)			
+		{
+			memcpy(&SendData[13+validNum*INVERTERLENGTH],curinverter->uid,6);
+			memcpy(&SendData[19+validNum*INVERTERLENGTH],&curinverter->heart_rate,2);
+			memcpy(&SendData[21+validNum*INVERTERLENGTH],&curinverter->off_times,2);
+			memcpy(&SendData[23+validNum*INVERTERLENGTH],&curinverter->mos_status,1);
+			
+			validNum ++;
+		}
+		
+		if(validNum > 0)
+		{		
+			length = (16+(validNum*INVERTERLENGTH));
+			
+			//改变报文字节长度
+			SendData[5] = (length/1000) + '0';
+			SendData[6] =	((length/100)%10) + '0';
+			SendData[7] = ((length/10)%10) + '0';
+			SendData[8] = ((length)%10) + '0';
+			
+		}else
+			length = 13;
+
+		
+		WIFI_SendData(SendData, length);
+	}
 }
 
 //ECU-RS设置组网回应

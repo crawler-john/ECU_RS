@@ -2,6 +2,7 @@
 #define __APPCOMM_H__
 
 #include "usart.h"
+#include "variation.h"
 
 
 typedef enum
@@ -20,7 +21,7 @@ int Resolve_RecvData(char *RecvData,int* Data_Len,int* Command_Id);
 //01 命令回应
 void APP_Response_BaseInfo(char *ECU_NO,char *TYPE,char *SIGNAL_LEVEL,char *SIGNAL_CHANNEL,int Length,char * Version);
 //02 命令回应
-
+void APP_Response_SystemInfo(unsigned char mapflag,inverter_info *inverter);
 //03 命令回应
 void APP_Response_SetNetwork(unsigned char result);
 

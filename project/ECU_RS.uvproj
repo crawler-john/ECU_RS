@@ -363,7 +363,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F10X_LD, USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\Libraries\STM32F10x_StdPeriph_Driver\inc;..\Libraries\CMSIS\CM3\CoreSupport;..\Libraries\CMSIS\CM3\DeviceSupport;..\drivers\EEPROM;..\drivers\KEY;..\drivers\LED;..\drivers\SYSTEM\delay;..\drivers\SYSTEM\usart;..\drivers\SYSTEM\sys;..\DEBUG;..\drivers\CMT2300;..\drivers\TIMER;..\application\FILE;..\application\APPComm;..\application\RFM300H</IncludePath>
+              <IncludePath>..\Libraries\STM32F10x_StdPeriph_Driver\inc;..\Libraries\CMSIS\CM3\CoreSupport;..\Libraries\CMSIS\CM3\DeviceSupport;..\drivers\EEPROM;..\drivers\KEY;..\drivers\LED;..\drivers\SYSTEM\delay;..\drivers\SYSTEM\usart;..\drivers\SYSTEM\sys;..\DEBUG;..\drivers\CMT2300;..\drivers\TIMER;..\application\FILE;..\application\APPComm;..\application\RFM300H;..\application</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>

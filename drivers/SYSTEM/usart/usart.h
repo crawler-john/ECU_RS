@@ -20,7 +20,14 @@ extern  unsigned char WIFI_Recv_Event;
 
 unsigned short packetlen(unsigned char *packet);
 int WIFI_SendData(char *data, int num);
+void WIFI_GetEvent(int *messageLen);
 void uart_init(u32 bound);
+
+int AT(void);
+int AT_ENTM(void);
+int AT_WAKEY(char *NewPasswd);
+int WIFI_ChangePasswd(char *NewPasswd);
+int WIFI_Reset(void);
 #endif
 
 

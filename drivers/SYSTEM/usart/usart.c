@@ -3,6 +3,12 @@
 #include "SEGGER_RTT.h"
 #include "timer.h"
 #include "string.h"
+#include "delay.h"
+
+
+#define WIFI_RCC                    RCC_APB2Periph_GPIOB
+#define WIFI_GPIO                   GPIOB
+#define WIFI_PIN                    (GPIO_Pin_15)
 
 unsigned short packetlen(unsigned char *packet)
 {
@@ -72,6 +78,16 @@ void uart_init(u32 bound){
 #endif
     USART_Cmd(USART2, ENABLE);                    //使能串口 
 
+
+    RCC_APB2PeriphClockCmd(WIFI_RCC,ENABLE);
+
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+
+    GPIO_InitStructure.GPIO_Pin   = WIFI_PIN;
+    GPIO_Init(WIFI_GPIO, &GPIO_InitStructure);
+		GPIO_SetBits(WIFI_GPIO, WIFI_PIN);
+
 }
 
 //串口2中断服务程序
@@ -93,11 +109,14 @@ void USART2_IRQHandler(void)                	//串口1中断服务程序
 	{
 		USART_RX_BUF[Cur] = USART_ReceiveData(USART2);//(USART2->DR);	//读取接收到的数据
 		//SEGGER_RTT_printf(0, "%x %c\n",USART_RX_BUF[Cur],USART_RX_BUF[Cur]);
-		
 		Cur +=1;
-    pos = 0;
 
-		
+	}
+} 
+
+void WIFI_GetEvent(int *messageLen)
+{
+	  pos = 0;
 		//receive start character
 		if(eStateMachine == EN_RECV_ST_GET_HEAD)    //接收报文头部
 		{
@@ -235,9 +254,10 @@ void USART2_IRQHandler(void)                	//串口1中断服务程序
 						//将采集成功的数据复制到成功数组
 						memset(WIFI_RecvData,0x00,USART_REC_LEN);
 						memcpy(WIFI_RecvData,USART_RX_BUF,PackLen);
+						*messageLen = PackLen;
 						WIFI_RecvData[PackLen] = '\0';
 						WIFI_Recv_Event = 1;
-						////SEGGER_RTT_printf(0, "WIFI_RecvData :%s\n",WIFI_RecvData);
+						//SEGGER_RTT_printf(0, "WIFI_RecvData :%s\n",WIFI_RecvData);
 						eStateMachine = EN_RECV_ST_GET_HEAD;
 						Cur = 0;
 						pos = 0;
@@ -251,8 +271,165 @@ void USART2_IRQHandler(void)                	//串口1中断服务程序
 				pos++;
 			}
 		}
+}
+
+void clear_WIFI(void)
+{
+	TIM3_Int_Deinit();
+	eStateMachine = EN_RECV_ST_GET_HEAD;
+	Cur = 0;
+}
+
+//进入AT模式
+int AT(void)
+{
+	clear_WIFI();
+	//先向模块写入"+++"然后再写入"a" 写入+++返回"a" 写入"a"返回+ok
+	WIFI_SendData("+++", 3);
+	//获取到a
+	delay_ms(50);
+	if(Cur <1)
+	{
+		return -1;
+	}else
+	{
+		if(memcmp(USART_RX_BUF,"a",1))
+		{
+			return -1;
+		}
+	}
+	
+	//接着发送a
+	clear_WIFI();
+	WIFI_SendData("a", 1);
+	delay_ms(50);
+	if(Cur < 3)
+	{
+		return -1;
+	}else
+	{
+		if(memcmp(USART_RX_BUF,"+ok",3))
+		{
+			return -1;
+		}
 
 	}
-} 
+	SEGGER_RTT_printf(0, "AT :a+ok\n");
+	clear_WIFI();
+	return 0;
+}
+
+
+//切换回原来的工作模式    OK
+int AT_ENTM(void)
+{
+
+	clear_WIFI();
+	//发送"AT+ENTM\n",返回+ok
+	WIFI_SendData("AT+ENTM\n", 8);
+	delay_ms(300);
+	if(Cur < 10)
+	{
+		return -1;
+	}else
+	{
+		if(memcmp(&USART_RX_BUF[9],"+ok",3))
+		{
+			return -1;
+		}
+
+	}
+	SEGGER_RTT_printf(0, "AT+ENTM :+ok\n");
+	clear_WIFI();
+	return 0;
+	
+}
+
+
+//设置WIFI密码
+int AT_WAKEY(char *NewPasswd)
+{
+	char AT[100] = { '\0' };
+	clear_WIFI();
+	//发送"AT+WAKEY\n",返回+ok
+	sprintf(AT,"AT+WAKEY=WPA2PSK,AES,%s\n",NewPasswd);
+	SEGGER_RTT_printf(0, "%s",AT);
+	WIFI_SendData(AT, (strlen(AT)+1));
+	
+	delay_ms(1000);
+	
+	if(Cur < 10)
+	{
+		return -1;
+	}else
+	{
+		if(memcmp(&USART_RX_BUF[strlen(AT)+1],"+ok",3))
+		{
+			return -1;
+		}
+	}
+	SEGGER_RTT_printf(0, "AT+WAKEY :+ok\n");
+	clear_WIFI();
+	return 0;
+}
+
+
+
+int WIFI_ChangePasswd(char *NewPasswd)
+{
+	int ret = 0,index;
+	for(index = 0;index<3;index++)
+	{
+		delay_ms(200);
+		ret =AT();
+		if(ret == 0) break;
+	}
+	if(ret == -1) return -1;
+	
+	delay_ms(200);
+	
+		for(index = 0;index<3;index++)
+	{
+		delay_ms(200);
+		ret =AT_WAKEY(NewPasswd);
+		if(ret == 0) break;
+	}
+	if(ret == -1)
+	{
+		for(index = 0;index<3;index++)
+		{
+			delay_ms(200);
+			ret =AT_ENTM();;
+			if(ret == 0) break;
+		}
+	
+		return -1;
+	}		
+	
+	for(index = 0;index<3;index++)
+	{
+		delay_ms(200);
+		ret =AT_ENTM();;
+		if(ret == 0) break;
+	}
+	if(ret == -1) return -1;
+	
+	WIFI_Reset();	
+	return 0;
+}
+
+int WIFI_Reset(void)
+{
+	GPIO_SetBits(WIFI_GPIO, WIFI_PIN);
+	
+	delay_ms(1000);
+	GPIO_ResetBits(WIFI_GPIO, WIFI_PIN);
+	return 0;
+}
+
+
 #endif	
+
+
+
 
