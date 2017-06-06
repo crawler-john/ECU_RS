@@ -29,6 +29,7 @@ int AT_WAKEY(char *NewPasswd);
 int WIFI_ChangePasswd(char *NewPasswd);
 int WIFI_Reset(void);
 int AT_Z(void);
+int WIFI_ClearPasswd(void);
 #endif
 
 

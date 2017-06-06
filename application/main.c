@@ -170,6 +170,13 @@ int main(void)
 #if 1
 	while(1)
 	{
+		if(KEY_FormatWIFI_Event == 1)
+		{
+			SEGGER_RTT_printf(0, "KEY_FormatWIFI_Event \n");
+			WIFI_ClearPasswd();
+			KEY_FormatWIFI_Event = 0;
+		}
+		
 		//判断是否有433模块心跳超时事件
 		if(COMM_Timeout_Event == 1)
 		{

@@ -19,8 +19,11 @@
 /*****************************************************************************/
 /*  Function Declarations                                                    */
 /*****************************************************************************/
+extern signed char KEY_FormatWIFI_Event;
 
 void KEY_Init(void);//IO初始化
 
-void EXTIX_Init(void);//外部中断初始化   
+void EXTIX_Init(void);//外部中断初始化
+
+
 #endif

@@ -398,6 +398,33 @@ int AT_WAKEY(char *NewPasswd)
 	return 0;
 }
 
+//…Ë÷√WIFI√‹¬Î
+int AT_WAKEY_Clear(void)
+{
+	char AT[100] = { '\0' };
+	clear_WIFI();
+	//∑¢ÀÕ"AT+WAKEY\n",∑µªÿ+ok
+	sprintf(AT,"AT+WAKEY=OPEN,NONE\n");
+	SEGGER_RTT_printf(0, "%s",AT);
+	WIFI_SendData(AT, (strlen(AT)+1));
+	
+	delay_ms(1000);
+	
+	if(Cur < 10)
+	{
+		return -1;
+	}else
+	{
+		if(memcmp(&USART_RX_BUF[strlen(AT)+1],"+ok",3))
+		{
+			return -1;
+		}
+	}
+	SEGGER_RTT_printf(0, "AT+WAKEY Clear :+ok\n");
+	clear_WIFI();
+	return 0;
+}
+
 
 
 int WIFI_ChangePasswd(char *NewPasswd)
@@ -457,6 +484,59 @@ int WIFI_Reset(void)
 	delay_ms(1000);
 	GPIO_ResetBits(WIFI_GPIO, WIFI_PIN);
 	return 0;
+}
+
+
+
+int WIFI_ClearPasswd(void)
+{
+	int ret = 0,index;
+	for(index = 0;index<3;index++)
+	{
+		delay_ms(200);
+		ret =AT();
+		if(ret == 0) break;
+	}
+	if(ret == -1) return -1;
+	
+	delay_ms(200);
+	
+	for(index = 0;index<3;index++)
+	{
+		delay_ms(200);
+		ret = AT_WAKEY_Clear();
+		if(ret == 0) break;
+	}
+	if(ret == -1)
+	{
+		for(index = 0;index<3;index++)
+		{
+			delay_ms(200);
+			ret =AT_ENTM();;
+			if(ret == 0) break;
+		}
+	
+		return -1;
+	}		
+	
+	for(index = 0;index<3;index++)
+	{
+		delay_ms(200);
+		ret =AT_Z();
+		if(ret == 0) return 0;
+	}
+	
+	for(index = 0;index<3;index++)
+	{
+		delay_ms(200);
+		ret =AT_ENTM();;
+		if(ret == 0) break;
+	}
+	if(ret == -1) return -1;
+	
+	WIFI_Reset();	
+	return 0;
+
 }
 
 

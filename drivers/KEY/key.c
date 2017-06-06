@@ -57,7 +57,7 @@ void EXTIX_Init(void)
  	NVIC_Init(&NVIC_InitStructure);  
 		
 }
-
+signed char KEY_FormatWIFI_Event = 0;
 int keyflag = 0;
 //外部中断9_5服务程序
 void EXTI9_5_IRQHandler(void)
@@ -68,8 +68,10 @@ void EXTI9_5_IRQHandler(void)
 		if(keyflag > 1)
 		{
 			//将配置文件恢复到出厂设置
-			SEGGER_RTT_printf(0, "EXTI9_5_IRQHandler \n");
+			//SEGGER_RTT_printf(0, "EXTI9_5_IRQHandler \n");
 			keyflag = 0;
+			KEY_FormatWIFI_Event = 1;
+			
 			//reboot();
 		//for(;;);
 		}
