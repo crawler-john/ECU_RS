@@ -28,9 +28,6 @@ int Read_ECUID(char *ECUID);
 //将6位ECU ID转换为12位ECU ID
 void transformECUID(char * ECUID6,char *ECUID12);
 
-int Write_SIGNAL_LV(char *Signal_LV);          							//信号强度
-int Read_SIGNAL_LV(char *Signal_LV);
-
 int Write_CHANNEL(char *Channel);														//信道
 int Read_CHANNEL(char *Channel);
 

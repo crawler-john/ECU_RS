@@ -59,28 +59,6 @@ void transformECUID(char * ECUID6,char *ECUID12)
 	ECUID12[11] = (((ECUID6[5]&0x0F))+'0');
 }
 
-
-int Write_SIGNAL_LV(char *Signal_LV)			        //信号强度
-{
-	char signal_lv[3] = {'\0'};
-	//先写入然后再读取  如果相同表示成功
-	Write_24L512_nByte(ADDRESS_SIGNAL_LV,3,(unsigned char *)Signal_LV);
-
-	Read_24L512_nByte(ADDRESS_SIGNAL_LV,3, (unsigned char *)signal_lv);
-	if(!memcmp(Signal_LV,signal_lv,3))
-		return 0;
-	else
-		return 1;
-}
-
-int Read_SIGNAL_LV(char *Signal_LV)
-{
-	if(Signal_LV == NULL)
-		return -1;
-	Read_24L512_nByte(ADDRESS_SIGNAL_LV,3, (unsigned char *)Signal_LV);
-	return 0;
-}
-
 int Write_CHANNEL(char *Channel)       //信道
 {
 	char channel[2] = {'\0'};

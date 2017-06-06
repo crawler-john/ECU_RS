@@ -69,7 +69,7 @@ void uart_init(u32 bound){
 #if EN_USART2_RX		  //如果使能了接收  
    //USART2 NVIC 配置
     NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=3;//抢占优先级3
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0;//抢占优先级0
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;		//子优先级3
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			//IRQ通道使能
 	NVIC_Init(&NVIC_InitStructure);	//根据指定的参数初始化VIC寄存器
@@ -345,6 +345,31 @@ int AT_ENTM(void)
 	
 }
 
+int AT_Z(void)
+{
+
+	clear_WIFI();
+	//发送"AT+Z\n",返回+ok
+	WIFI_SendData("AT+Z\n", 5);
+	delay_ms(300);
+	if(Cur < 6)
+	{
+		return -1;
+	}else
+	{
+		if(memcmp(&USART_RX_BUF[6],"+ok",3))
+		{
+			return -1;
+		}
+
+	}
+	SEGGER_RTT_printf(0, "AT+Z :+ok\n");
+	clear_WIFI();
+	return 0;
+	
+}
+
+
 
 //设置WIFI密码
 int AT_WAKEY(char *NewPasswd)
@@ -388,7 +413,7 @@ int WIFI_ChangePasswd(char *NewPasswd)
 	
 	delay_ms(200);
 	
-		for(index = 0;index<3;index++)
+	for(index = 0;index<3;index++)
 	{
 		delay_ms(200);
 		ret =AT_WAKEY(NewPasswd);
@@ -405,6 +430,13 @@ int WIFI_ChangePasswd(char *NewPasswd)
 	
 		return -1;
 	}		
+	
+	for(index = 0;index<3;index++)
+	{
+		delay_ms(200);
+		ret =AT_Z();
+		if(ret == 0) return 0;
+	}
 	
 	for(index = 0;index<3;index++)
 	{

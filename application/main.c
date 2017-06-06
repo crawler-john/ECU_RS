@@ -11,15 +11,18 @@
 #include "timer.h"
 #include "appcomm.h"
 #include "string.h"
+#include "RFM300H.h"
 #include "variation.h"
 
 char ECUID12[13] = {'\0'};
 char ECUID6[7] = {'\0'};
-char Signal_Level[4] = {'\0'};
+char Signal_Level = 0;
 char Signal_Channel[3] = {'\0'};
 char New_Signal_Channel[3] = {'\0'};
+char IO_Init_Status = 0;			//IO初始状态
+char ver = 0;						//优化器版本号
 int vaildNum = 0;				//当前有效台数
-
+int curSequence = 0;		//心跳轮训机器号
 inverter_info inverterInfo[MAXINVERTERCOUNT] = {'\0'};
 
 int init_ecu(void)
@@ -34,18 +37,12 @@ int init_ecu(void)
 	Read_ECUID(ECUID6);						//读取ECU ID
 	transformECUID(ECUID6,ECUID12);		//转换ECU ID
 	
-//	Signal_Level[0] ='0';
-//	Signal_Level[1] ='9';
-//	Signal_Level[2] ='9';
-//	Write_SIGNAL_LV(Signal_Level);
-	Read_SIGNAL_LV(Signal_Level);
-
 //	Signal_Channel[0] ='0';
 //	Signal_Channel[1] ='9';
 //	Write_CHANNEL(Signal_Channel);
 	Read_CHANNEL(Signal_Channel);
 	
-	SEGGER_RTT_printf(0, "ECU ID :%s     Signal_Level:%s     Signal_Channel:   %s    \n",ECUID12,Signal_Level,Signal_Channel);
+	SEGGER_RTT_printf(0, "ECU ID :%s        Signal_Channel:   %s    \n",ECUID12,Signal_Channel);
 	return 0;
 }
 
@@ -75,6 +72,10 @@ int init_inverter(inverter_info *inverter)
 	{
 		vaildNum = 0;
 	}
+	//如果当前优化器数量为0，那么提示灯常亮
+	if(vaildNum == 0)
+		LED_on();
+	
 	SEGGER_RTT_printf(0, "UID_NUM %d \n",vaildNum);
 	curinverter = inverter;
 	for(i=0; (i<MAXINVERTERCOUNT && i<vaildNum); i++, curinverter++)
@@ -116,6 +117,34 @@ int ResolveWifiPasswd(char *oldPasswd,int *oldLen,char *newPasswd,int *newLen,ch
 	return 0;
 }
 
+
+//绑定逆变器
+void bind_inverter(inverter_info *inverter)
+{
+	int i = 0;
+	switchLed(0x01);
+	for(i =0;i<vaildNum;i++)
+	{
+		RFM300_Bind_Uid(ECUID6,(char *)inverter[i].uid,0,0);
+	}
+	switchLed(0x00);
+}
+
+//变更信道
+void changeChannel_inverter(inverter_info *inverter,char channel)
+{
+	int i = 0;
+	switchLed(0x01);
+	for(i =0;i<vaildNum;i++)
+	{
+		RFM300_Bind_Uid(ECUID6,(char *)inverter[i].uid,channel,0);
+	}
+	switchLed(0x00);
+}
+
+
+
+
 int main(void)
 {	
 //	int RF_leng;
@@ -138,13 +167,24 @@ int main(void)
 	SEGGER_RTT_printf(0, "init OK \n");
 	init_ecu();										//初始化ECU
 	init_inverter(inverterInfo);	//初始化逆变器
-
+#if 1
 	while(1)
 	{
 		//判断是否有433模块心跳超时事件
 		if(COMM_Timeout_Event == 1)
 		{
-			SEGGER_RTT_printf(0, "COMM_Timeout_Event \n");
+			//SEGGER_RTT_printf(0, "COMM_Timeout_Event \n");
+			//发送心跳包
+			if(	vaildNum >0	)
+			{
+				RFM300_Heart_Beat(ECUID6,(char *)inverterInfo[curSequence].uid,(char *)&inverterInfo[curSequence].mos_status,&IO_Init_Status,&inverterInfo[curSequence].heart_rate,&inverterInfo[curSequence].off_times,&ver);
+				curSequence++;
+				if(curSequence >= vaildNum)		//当轮训的序号大于最后一台时，更换到第0台
+				{
+					curSequence = 0;
+				}
+				
+			}
 			COMM_Timeout_Event = 0;
 		}
 		WIFI_GetEvent(&messageLen);
@@ -159,6 +199,8 @@ int main(void)
 					case COMMAND_BASEINFO:				//获取基本信息			APS11001401END
 						SEGGER_RTT_printf(0, "WIFI_Recv_Event%d %s\n",COMMAND_BASEINFO,WIFI_RecvData);
 						//获取基本信息
+						//获取信号强度
+						Signal_Level = ReadRssiValue(1);
 						APP_Response_BaseInfo(ECUID12,VERSION_ECU_RS,Signal_Level,Signal_Channel,5,SOFEWARE_VERSION);
 						break;
 					
@@ -168,12 +210,12 @@ int main(void)
 						if(!memcmp(&WIFI_RecvData[11],ECUID12,12))
 						{	//匹配成功进行相应的操作
 							SEGGER_RTT_printf(0, "COMMAND_SYSTEMINFO  Mapping\n");
-							APP_Response_SystemInfo(0x00,inverterInfo);
+							APP_Response_SystemInfo(0x00,inverterInfo,vaildNum);
 					
 						}	else
 						{	//不匹配
 							SEGGER_RTT_printf(0, "COMMAND_SYSTEMINFO   Not Mapping");
-							APP_Response_SystemInfo(0x01,inverterInfo);
+							APP_Response_SystemInfo(0x01,inverterInfo,0);
 						}
 						break;
 					
@@ -189,8 +231,9 @@ int main(void)
 							//将数据写入EEPROM
 							add_inverter(inverterInfo,AddNum,(char *)&WIFI_RecvData[26]);
 							APP_Response_SetNetwork(0x00);
-							
+							init_inverter(inverterInfo);
 							//进行一些绑定操作
+							bind_inverter(inverterInfo);
 							
 						}	else
 						{	//不匹配
@@ -203,9 +246,20 @@ int main(void)
 						SEGGER_RTT_printf(0, "WIFI_Recv_Event%d %s\n",COMMAND_SETCHANNEL,WIFI_RecvData);
 						if(!memcmp(&WIFI_RecvData[11],ECUID12,12))
 						{	//匹配成功进行相应的操作
+							char newChannel = 0;
+							//获取新的信道
 							memcpy(New_Signal_Channel,&WIFI_RecvData[26],2);
-							
+							//获取信号强度
+							Signal_Level = ReadRssiValue(1);
 							APP_Response_SetChannel(0x00,New_Signal_Channel,Signal_Level);
+							//将其转换为1个字节
+							newChannel = New_Signal_Channel[0]*10+New_Signal_Channel[1];
+							changeChannel_inverter(inverterInfo,newChannel);
+							//改变自己的信道
+							
+							//保存新信道到Flash
+							memcpy(Signal_Channel,New_Signal_Channel,3);
+							Write_CHANNEL(Signal_Channel);
 						}	else
 						{	//不匹配
 							APP_Response_SetChannel(0x01,NULL,NULL);
@@ -252,21 +306,27 @@ int main(void)
 		}
 		delay_us(2);
 	}
+#endif
 
-	/*
+#if 0
 	while(1)
 	{
-		Write_24L512_nByte(0x000000,10,eepromSenddata);
+		unsigned char rss;
+		unsigned char eepromSenddata[32] = "HJJHJJHJJ HJJHJJHJJ HJJHJJHJJ ";
+	
+		unsigned char eepromRecvdata[32] = {'\0'};
+		Write_24L512_nByte(0x0001A0,32,eepromSenddata);
 		SEGGER_RTT_printf(0, "eepromSenddata:   %s\n",eepromSenddata);
 
-		Read_24L512_nByte(0x000001,10,eepromRecvdata);
-
-		eepromRecvdata[10] = '\0';
+		Read_24L512_nByte(0x0001A0,32,eepromRecvdata);
 		SEGGER_RTT_printf(0, "eepromRecvdata:   %s\n",eepromRecvdata);
+		
+		rss =  ReadRssiValue(1);
+		SEGGER_RTT_printf(0, "ReadRssiValue:   %d\n",rss);
 		delay_ms(1000);
 		
 	}	
-	*/
+#endif
 	
 #if 0
 	while(1)

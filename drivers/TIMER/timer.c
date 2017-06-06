@@ -124,6 +124,9 @@ void TIM2_Refresh(void)
 	//timeout_num = 0;
 }
 
+
+char ledSwitch = 0;
+char ledFlag = 0;
 //定时器2中断服务程序
 void TIM2_IRQHandler(void)   //TIM2中断
 {
@@ -135,11 +138,31 @@ void TIM2_IRQHandler(void)   //TIM2中断
 			//产生超时时间
 			COMM_Timeout_Event = 1;
 			timeout_num = 0;
+			if(ledSwitch == 1)
+			{
+				ledFlag = !ledFlag;
+				if(ledFlag)
+				{
+					LED_on();
+				}else{
+					LED_off();
+				}
+			}
 
 		}
 }
 
-
+void switchLed(char Switch)
+{
+	if(Switch == 0x00)
+	{
+		ledSwitch = 0;
+		LED_off();
+	}else
+	{
+		ledSwitch = 1;
+	}
+}
 
 
 
