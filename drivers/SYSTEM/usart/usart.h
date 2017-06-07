@@ -11,17 +11,24 @@ typedef enum
     EN_RECV_ST_GET_END          = 3		//接收END结尾标志
 } eRecvSM;// receive state machin
 
+#define USART1_REC_LEN			512
+
 #define USART_REC_LEN  			1024  	//定义最大接收字节数 200
 #define EN_USART2_RX 				1		//使能（1）/禁止（0）串口1接收
 	  	
 
 extern unsigned char WIFI_RecvData[USART_REC_LEN];
-extern  unsigned char WIFI_Recv_Event;
+extern unsigned char WIFI_Recv_Event;
+extern unsigned char USART1_RecvData[USART1_REC_LEN];
+extern unsigned char USART1_Recv_Event;
 
 unsigned short packetlen(unsigned char *packet);
+int UART1_SendData(char *data, int num);
 int WIFI_SendData(char *data, int num);
 void WIFI_GetEvent(int *messageLen);
-void uart_init(u32 bound);
+void USART1_GetEvent(int *messageLen);
+void uart2_init(u32 bound);
+void uart1_init(u32 bound);
 
 int AT(void);
 int AT_ENTM(void);

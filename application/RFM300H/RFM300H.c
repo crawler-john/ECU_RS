@@ -128,7 +128,7 @@ int RFM300_Heart_Beat(char *ECUID,char *UID,char *mos_Status,char *IO_InitStatus
 	return 0;
 }
 
-int RFM300_IO_Init(char *ECUID,char *UID,char IO_Status,char *data,char *mos_Status,char *IO_InitStatus,unsigned short *TimeoutNum,unsigned short * offNum,char *Ver)
+int RFM300_IO_Init(char *ECUID,char *UID,char IO_Status,char *mos_Status,char *IO_InitStatus,unsigned short *TimeoutNum,unsigned short * offNum,char *Ver)
 {
 	int i,check = 0;
 	unsigned char RF_leng = 0;

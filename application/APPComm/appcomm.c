@@ -96,3 +96,11 @@ void APP_Response_SetWifiPassword(unsigned char result)
 	sprintf(SendData,"APS11001305%02d",result);
 	WIFI_SendData(SendData, 13);
 }
+
+
+void APP_Response_IOInitStatus(unsigned char result)
+{
+	char SendData[20] = {'\0'};
+	sprintf(SendData,"APS11001306%02d",result);
+	WIFI_SendData(SendData, 13);
+}

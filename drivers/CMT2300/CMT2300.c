@@ -600,8 +600,10 @@ void CMT2300_init(void)
     SelectIntSource(INT_TX_DONE,INT_CRC_PASS);
     
     Spi3WriteReg(0x65,0x22);
+		
     //
-    AntennaDiversity_Rx();
+    //AntennaDiversity_Rx();
+	SetOperaStatus(MODE_GO_SLEEP);	
 	// go sleep
 	SetOperaStatus(MODE_GO_SLEEP);
 }
@@ -614,34 +616,42 @@ byte SendMessage(byte *p,byte len)
 
 	SetTxpayloadLength(len);
 
-	SetOperaStatus(MODE_GO_TX);	//MODE_STA_STBY
+	Enable_fifo_write();
+	ClearFifo();
+	SetOperaStatus(MODE_GO_STBY);	//MODE_STA_STBY
 	// verify transmit state
 	do {
 		val=GetOperaStatus();
-		if (val==MODE_STA_TX)		//MODE_STA_STBY
+		if (val==MODE_STA_STBY)		//MODE_STA_STBY
 			break;
 	} while(1);
     // write FIFO
-	Enable_fifo_write();
+	
 	for (i=0;i<len;i++)
 	{
 		Spi3WriteFIFOByte(p[i]);
 	}
 	//go transmit
 
-//	SetOperaStatus(MODE_STA_TX);
-	delay_ms(500);
-    
+	SetOperaStatus(MODE_GO_TX);
+  delay_ms(300);
     
 // verify transmit done
 	/*
 	do {
-            val=GetIrqFlag_Tx();
-            if (val==TX_DONE_FLAG)
-            {
-                ClearInt(0x00);
-                break;
-            }
+		Spi3WriteReg(0X0E,0X04);
+		delay_ms(500);
+		val=Spi3ReadReg(0X0E);
+		SEGGER_RTT_printf(0, "0X68:%x\n",val);
+		
+		val=GetIrqFlag_Tx();
+		SEGGER_RTT_printf(0, "GetIrqFlag_Tx:%d\n",val);
+		if (val==TX_DONE_FLAG)
+		{	
+			
+			ClearInt(0x00);
+			break;
+		}
 		
 	} while(1);
 	*/
@@ -653,28 +663,39 @@ byte SendMessage(byte *p,byte len)
 // receive
 byte GetMessage(byte *p)
 {
+	int val = 0;
 	int index = 0;
 	byte i=0x00;
     
 	if(RFM300H_SW==0)
 	{
 		SetOperaStatus(MODE_GO_RX);//进入接收模式
-        Enable_fifo_read();
-		RFM300H_SW = 1; 	
+		
+    Enable_fifo_read();
+		do {
+			val=GetOperaStatus();
+			
+			if (val==MODE_STA_RX)
+			{
+				break;
+			}
+		} while(1);
+
+			RFM300H_SW = 1; 	
 	}
 	if(RFM300H_SW==1)
 	{	
-		for(index =0 ;index<200;index++)
+		for(index =0 ;index<400;index++)
 		{
 			if(GPIO3==1)
 			{
 				RFM300H_SW = 2;
+				//SEGGER_RTT_printf(0, "GetIrqFlag_Tx:%d\n",index);
 				break;
 			}
-			delay_ms(25);	
+			delay_ms(1);	
 		}
 		
-
 	}
 	if(RFM300H_SW==2)
 	{
@@ -686,7 +707,7 @@ byte GetMessage(byte *p)
 		}
         ReadRssiValue(0);
         ClearInt(0x00);
-		RFM300H_SW = 0;
+		RFM300H_SW = 3;
 		return length;
 	}
 	return 0;

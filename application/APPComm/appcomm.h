@@ -11,7 +11,8 @@ typedef enum
     COMMAND_SYSTEMINFO       	= 2,	//接收数据长度   其中数据部分的长度为接收到长度减去12个字节
     COMMAND_SETNETWORK      	= 3,	//接收数据部分数据
     COMMAND_SETCHANNEL       	= 4,		//接收END结尾标志
-		COMMAND_SETWIFIPASSWORD 	= 5
+		COMMAND_SETWIFIPASSWORD 	= 5,
+		COMMAND_IOINITSTATUS 			= 6,
 } eCommandID;// receive state machin
 
 
@@ -28,6 +29,6 @@ void APP_Response_SetNetwork(unsigned char result);
 void APP_Response_SetChannel(unsigned char mapflag,char *SIGNAL_CHANNEL,char SIGNAL_LEVEL);
 //05 命令回应
 void APP_Response_SetWifiPassword(unsigned char result);
-
-
+//06 命令回应
+void APP_Response_IOInitStatus(unsigned char result);
 #endif /*__APPCOMM_H__*/

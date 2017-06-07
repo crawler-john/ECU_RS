@@ -15,6 +15,7 @@
 #include "key.h"
 #include <stm32f10x.h>
 #include "SEGGER_RTT.h"
+#include "delay.h"
 
 /*****************************************************************************/
 /*  Function Implementations                                                 */
@@ -62,18 +63,17 @@ int keyflag = 0;
 //外部中断9_5服务程序
 void EXTI9_5_IRQHandler(void)
 {
+	delay_ms(20);
 	if(KEY_Reset==1)	 	 
 	{
 		keyflag++;
 		if(keyflag > 1)
 		{
 			//将配置文件恢复到出厂设置
-			//SEGGER_RTT_printf(0, "EXTI9_5_IRQHandler \n");
+			SEGGER_RTT_printf(0, "EXTI9_5_IRQHandler \n");
 			keyflag = 0;
 			KEY_FormatWIFI_Event = 1;
 			
-			//reboot();
-		//for(;;);
 		}
 		
 	}

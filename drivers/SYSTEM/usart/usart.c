@@ -31,13 +31,267 @@ int WIFI_SendData(char *data, int num)
 	return index;
 }
 
+//WIFI发送函数 
+int UART1_SendData(char *data, int num)
+{      
+	int index = 0;
+	char ch = 0;
+	for(index = 0;index < num;index++)
+	{
+		ch = data[index];
+		while(USART_GetFlagStatus(USART1,USART_FLAG_TC)==RESET); 
+    USART_SendData(USART1,(uint8_t)ch);
+	}
+	return index;
+}
+
+void uart1_init(u32 bound){
+    //GPIO端口设置
+  GPIO_InitTypeDef GPIO_InitStructure;
+	USART_InitTypeDef USART_InitStructure;
+	NVIC_InitTypeDef NVIC_InitStructure;
+	 
+	
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);	//使能串口时钟USART1
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);	//使能GPIOA时钟
+	//RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART2|RCC_APB2Periph_GPIOA, ENABLE);	//使能USART2，GPIOA时钟
+ 	USART_DeInit(USART1);  //复位串口1
+	 //USART1_TX   PA.9
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9; //PA.9
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;	//复用推挽输出
+    GPIO_Init(GPIOA, &GPIO_InitStructure); //初始化PA9
+   
+    //USART1_RX	  PA.10
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;//浮空输入
+    GPIO_Init(GPIOA, &GPIO_InitStructure);  //初始化PA10
+   //USART 初始化设置
+
+	USART_InitStructure.USART_BaudRate = bound;//一般设置为9600;
+	USART_InitStructure.USART_WordLength = USART_WordLength_8b;//字长为8位数据格式
+	USART_InitStructure.USART_StopBits = USART_StopBits_1;//一个停止位
+	USART_InitStructure.USART_Parity = USART_Parity_No;//无奇偶校验位
+	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;//无硬件数据流控制
+	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;	//收发模式
+
+    USART_Init(USART1, &USART_InitStructure); //初始化串口
+ 
+   //USART1 NVIC 配置
+    NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0;//抢占优先级3
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;		//子优先级3
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			//IRQ通道使能
+	NVIC_Init(&NVIC_InitStructure);	//根据指定的参数初始化VIC寄存器
+   
+    USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);//开启中断
+
+    USART_Cmd(USART1, ENABLE);                    //使能串口 
+
+
+    RCC_APB2PeriphClockCmd(WIFI_RCC,ENABLE);
+
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+
+    GPIO_InitStructure.GPIO_Pin   = WIFI_PIN;
+    GPIO_Init(WIFI_GPIO, &GPIO_InitStructure);
+		GPIO_SetBits(WIFI_GPIO, WIFI_PIN);
+
+}
+
+
+unsigned char USART1_RecvData[USART1_REC_LEN] = {'\0'};
+unsigned char USART1_Recv_Event = 0;
+
+unsigned char USART1_RX_BUF[USART1_REC_LEN];     //接收缓冲,最大USART_REC_LEN个字节.
+unsigned short USART1Cur = 0;		//当前采值位置
+unsigned short USART1_PackLen = 0;
+eRecvSM Usart1eStateMachine = EN_RECV_ST_GET_HEAD;	//数据采集状态机
+unsigned short USART1_pos = 0;				//数据解析位置
+unsigned short USART1_mvsize = 0;
+
+
+void USART1_IRQHandler(void)                	//串口1中断服务程序
+{
+	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)  //接收中断(接收到的数据必须是0x0d 0x0a结尾)
+	{
+		USART1_RX_BUF[USART1Cur] = USART_ReceiveData(USART1);//(USART2->DR);	//读取接收到的数据
+		//SEGGER_RTT_printf(0, "%x %c\n",USART1_RX_BUF[USART1Cur],USART1_RX_BUF[USART1Cur]);
+		USART1Cur +=1;
+
+		
+
+	}
+} 
+
+void USART1_GetEvent(int *messageLen)
+{
+	  USART1_pos = 0;
+		//receive start character
+		if(Usart1eStateMachine == EN_RECV_ST_GET_HEAD)    //接收报文头部
+		{
+			////SEGGER_RTT_printf(0, "EN_RECV_ST_GET_HEAD\n");
+			// check for the start character(SYNC_CHARACTER)
+      // also check it's not arriving the end of valid data
+      while(USART1_pos < USART1Cur)
+      {
+				TIM4_Int_Deinit();
+				USART1_mvsize = USART1Cur - USART1_pos;		//当前第几个字节
+				if(1 == USART1_mvsize)   //'A'
+				{
+						if(USART1_RX_BUF[0] != 'E')
+						{
+							USART1Cur = 0;
+							USART1_pos = 0;
+						}
+				}
+				
+				if(2 == USART1_mvsize)   //'P'
+				{
+						if(USART1_RX_BUF[1] != 'C')
+						{
+							USART1Cur = 0;
+							USART1_pos = 0;
+						}
+				}	
+				
+				if(3 == USART1_mvsize)   //'S'
+				{
+						if(USART1_RX_BUF[2] != 'U')
+						{
+							USART1Cur = 0;
+							USART1_pos = 0;
+						}
+				}
+				
+				if(5 == USART1_mvsize)   //接收版本号完毕
+				{
+					//SEGGER_RTT_printf(0, "APS11\n");
+					Usart1eStateMachine = EN_RECV_ST_GET_LEN;
+
+					//TIM3_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+					break;
+				}
+				
+				TIM4_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+				
+				USART1_pos++;
+			}
+		}
+		
+		//receive data length
+		if(Usart1eStateMachine == EN_RECV_ST_GET_LEN)
+		{
+			////SEGGER_RTT_printf(0, "EN_RECV_ST_GET_LEN\n");
+			while(USART1_pos < USART1Cur)
+      {
+				TIM4_Int_Deinit();
+				USART1_mvsize = USART1Cur - USART1_pos;		//当前第几个字节
+				if(9 == USART1_mvsize)   //接收数据长度结束
+				{
+					USART1_PackLen = packetlen(&USART1_RX_BUF[5]);
+					//SEGGER_RTT_printf(0, "LENGTH : %d\n",PackLen);
+					//计算长度
+					Usart1eStateMachine = EN_RECV_ST_GET_DATA;
+
+					TIM4_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+					break;
+				}
+				TIM4_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+				USART1_pos++;
+			}
+		}
+		
+		//Continue to receive data
+		if(Usart1eStateMachine == EN_RECV_ST_GET_DATA)
+		{
+			////SEGGER_RTT_printf(0, "EN_RECV_ST_GET_DATA\n");
+			while(USART1_pos < USART1Cur)
+      {
+				TIM4_Int_Deinit();
+				USART1_mvsize = USART1Cur - USART1_pos;		//当前第几个字节
+				if((USART1_PackLen - 3) == USART1_mvsize)   //接收数据长度结束
+				{
+					Usart1eStateMachine = EN_RECV_ST_GET_END;
+
+					TIM4_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+					break;
+				}
+				TIM4_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+				USART1_pos++;
+			}
+		}
+		
+		
+		
+		//receive END
+		if(Usart1eStateMachine == EN_RECV_ST_GET_END)
+		{
+			////SEGGER_RTT_printf(0, "EN_RECV_ST_GET_END\n");
+			while(USART1_pos < USART1Cur)
+      {
+				TIM4_Int_Deinit();
+				USART1_mvsize = USART1Cur - USART1_pos;		//当前第几个字节
+				if((USART1_PackLen - 2) == USART1_mvsize)   //'A'
+				{
+						if(USART1_RX_BUF[USART1_PackLen - 3] != 'E')
+						{
+							USART1Cur = 0;
+							USART1_pos = 0;
+						}
+				}
+				
+				if((USART1_PackLen - 1) == USART1_mvsize)   //'P'
+				{
+						if(USART1_RX_BUF[USART1_PackLen - 2] != 'N')
+						{
+							USART1Cur = 0;
+							USART1_pos = 0;
+						}
+				}	
+				
+				if((USART1_PackLen) == USART1_mvsize)   //'S'
+				{
+						if(USART1_RX_BUF[USART1_PackLen - 1] != 'D')
+						{
+							USART1Cur = 0;
+							USART1_pos = 0;
+						}
+						//SEGGER_RTT_printf(0, "EN_RECV_ST_GET_END OVER\n");
+						
+						//报文接收完毕
+						//进行完毕的相应操作
+						//将采集成功的数据复制到成功数组
+						memset(USART1_RecvData,0x00,USART1_REC_LEN);
+						memcpy(USART1_RecvData,USART1_RX_BUF,USART1_PackLen);
+						*messageLen = USART1_PackLen;
+						USART1_RecvData[USART1_PackLen] = '\0';
+						USART1_Recv_Event = 1;
+						//SEGGER_RTT_printf(0, "WIFI_RecvData :%s\n",USART1_RecvData);
+						Usart1eStateMachine = EN_RECV_ST_GET_HEAD;
+						USART1Cur = 0;
+						USART1_pos = 0;
+						
+						TIM4_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+						break;
+				}
+				
+				TIM4_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+				
+				USART1_pos++;
+			}
+		}
+}
+
+
  
 #if EN_USART2_RX   //如果使能了接收
 //初始化IO 串口1 
 //bound:波特率
-void uart_init(u32 bound){
+void uart2_init(u32 bound){
     //GPIO端口设置
-    GPIO_InitTypeDef GPIO_InitStructure;
+  GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
 	 
@@ -69,7 +323,7 @@ void uart_init(u32 bound){
 #if EN_USART2_RX		  //如果使能了接收  
    //USART2 NVIC 配置
     NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0;//抢占优先级0
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0;//抢占优先级3
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;		//子优先级3
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			//IRQ通道使能
 	NVIC_Init(&NVIC_InitStructure);	//根据指定的参数初始化VIC寄存器
@@ -287,7 +541,7 @@ int AT(void)
 	//先向模块写入"+++"然后再写入"a" 写入+++返回"a" 写入"a"返回+ok
 	WIFI_SendData("+++", 3);
 	//获取到a
-	delay_ms(50);
+	delay_ms(350);
 	if(Cur <1)
 	{
 		return -1;
@@ -302,7 +556,7 @@ int AT(void)
 	//接着发送a
 	clear_WIFI();
 	WIFI_SendData("a", 1);
-	delay_ms(50);
+	delay_ms(350);
 	if(Cur < 3)
 	{
 		return -1;
@@ -497,7 +751,17 @@ int WIFI_ClearPasswd(void)
 		ret =AT();
 		if(ret == 0) break;
 	}
-	if(ret == -1) return -1;
+	if(ret == -1)
+	{
+		for(index = 0;index<3;index++)
+		{
+			delay_ms(200);
+			ret =AT_ENTM();
+			if(ret == 0) break;
+		}
+	
+		return -1;
+	}	
 	
 	delay_ms(200);
 	
@@ -512,7 +776,7 @@ int WIFI_ClearPasswd(void)
 		for(index = 0;index<3;index++)
 		{
 			delay_ms(200);
-			ret =AT_ENTM();;
+			ret =AT_ENTM();
 			if(ret == 0) break;
 		}
 	
