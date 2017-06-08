@@ -363,7 +363,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F10X_MD, USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\Libraries\STM32F10x_StdPeriph_Driver\inc;..\Libraries\CMSIS\CM3\CoreSupport;..\Libraries\CMSIS\CM3\DeviceSupport;..\drivers\EEPROM;..\drivers\KEY;..\drivers\LED;..\drivers\SYSTEM\delay;..\drivers\SYSTEM\usart;..\drivers\SYSTEM\sys;..\DEBUG;..\drivers\CMT2300;..\drivers\TIMER;..\application\FILE;..\application\APPComm;..\application\RFM300H;..\application;..\application\USART1Comm</IncludePath>
+              <IncludePath>..\Libraries\STM32F10x_StdPeriph_Driver\inc;..\Libraries\CMSIS\CM3\CoreSupport;..\Libraries\CMSIS\CM3\DeviceSupport;..\drivers\EEPROM;..\drivers\KEY;..\drivers\LED;..\drivers\SYSTEM\delay;..\drivers\SYSTEM\usart;..\drivers\SYSTEM\sys;..\DEBUG;..\drivers\CMT2300;..\drivers\TIMER;..\application\FILE;..\application\APPComm;..\application\RFM300H;..\application;..\application\USART1Comm;..\application\EVENT;..\application\Inverter</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -570,6 +570,26 @@
               <FileName>USART1Comm.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\application\USART1Comm\USART1Comm.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>EVENT</GroupName>
+          <Files>
+            <File>
+              <FileName>event.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\EVENT\event.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Inverter</GroupName>
+          <Files>
+            <File>
+              <FileName>inverter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\Inverter\inverter.c</FilePath>
             </File>
           </Files>
         </Group>

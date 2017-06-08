@@ -21,7 +21,6 @@
 extern eRecvSM eStateMachine;
 extern unsigned short Cur;
 
-
 static signed char usart_flag = 0;
 //通用定时器3中断初始化
 //这里时钟选择为APB1的2倍，而APB1为36M
@@ -195,7 +194,7 @@ void TIM4_Int_Init(u16 arr,u16 psc)
 
 	//中断优先级NVIC设置
 	NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;  //TIM4中断
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;  //先占优先级0级
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;  //先占优先级0级
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;  //从优先级3级
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; //IRQ通道被使能
 	NVIC_Init(&NVIC_InitStructure);  //初始化NVIC寄存器

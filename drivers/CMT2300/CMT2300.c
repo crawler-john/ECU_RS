@@ -152,7 +152,7 @@ void Spi3Init(void)
 
 	RCC_APB2PeriphClockCmd(RFM300M_SDIO_RCC,ENABLE);
 	GPIO_InitStructure.GPIO_Pin = SDIO_PIN;        
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;      //开漏输出
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;      //开漏输出
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;    //最高输出速率50MHz
 	GPIO_Init(SDIO_GPIO, &GPIO_InitStructure);
 	
@@ -216,9 +216,9 @@ byte Spi3ReadReg(byte addr)
 		
 		addr<<=1;
 	}
-
+	SetSDA();
 	//read value
-	//InputSDA();
+	InputSDA();
 	for (i=8;i>0;i--)
 	{
 		val<<=1;
@@ -299,7 +299,7 @@ byte Spi3ReadFIFOByte(void)
 	//set FCSB to low and delay
 	Spi3Init();
 	ClrFCSB();
-	//InputSDA();
+	InputSDA();
 	delay_us(SPI3_SPEED<<2);
     // read one byte
     for (i=0;i<8;i++)
@@ -634,18 +634,18 @@ byte SendMessage(byte *p,byte len)
 	//go transmit
 
 	SetOperaStatus(MODE_GO_TX);
-  delay_ms(300);
+  //delay_ms(300);
     
 // verify transmit done
-	/*
+	
 	do {
-		Spi3WriteReg(0X0E,0X04);
-		delay_ms(500);
-		val=Spi3ReadReg(0X0E);
-		SEGGER_RTT_printf(0, "0X68:%x\n",val);
+		//Spi3WriteReg(0X68,0X04);
+		//delay_ms(500);
+		//val=Spi3ReadReg(0X68);
+		//SEGGER_RTT_printf(0, "0X68:%x\n",val);
 		
 		val=GetIrqFlag_Tx();
-		SEGGER_RTT_printf(0, "GetIrqFlag_Tx:%d\n",val);
+		//SEGGER_RTT_printf(0, "GetIrqFlag_Tx:%d\n",val);
 		if (val==TX_DONE_FLAG)
 		{	
 			
@@ -654,7 +654,7 @@ byte SendMessage(byte *p,byte len)
 		}
 		
 	} while(1);
-	*/
+	
 	// go sleep mode
 	SetOperaStatus(MODE_GO_SLEEP);
 	RFM300H_SW = 0;	
@@ -685,7 +685,7 @@ byte GetMessage(byte *p)
 	}
 	if(RFM300H_SW==1)
 	{	
-		for(index =0 ;index<400;index++)
+		for(index =0 ;index<500;index++)
 		{
 			if(GPIO3==1)
 			{

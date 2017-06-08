@@ -5,7 +5,7 @@
 /*****************************************************************************/
 /*  Date       * Author          * Changes                                   */
 /*****************************************************************************/
-/*  2017-05-27 * Shengfeng Dong  * Creation of the file                      */
+/*  2017-06-02 * Shengfeng Dong  * Creation of the file                      */
 /*             *                 *                                           */
 /*****************************************************************************/
 
@@ -70,7 +70,7 @@ void EXTI9_5_IRQHandler(void)
 		if(keyflag > 1)
 		{
 			//将配置文件恢复到出厂设置
-			SEGGER_RTT_printf(0, "EXTI9_5_IRQHandler \n");
+			//SEGGER_RTT_printf(0, "EXTI9_5_IRQHandler \n");
 			keyflag = 0;
 			KEY_FormatWIFI_Event = 1;
 			

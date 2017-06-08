@@ -129,7 +129,7 @@ int Write_UID_NUM(char *UID_NUM)						//UID_NUM
 	//先写入然后再读取  如果相同表示成功
 	Write_24L512_nByte(ADDRESS_UID_NUM,2,(unsigned char *)UID_NUM);
 	Read_24L512_nByte(ADDRESS_UID_NUM,2, (unsigned char *)uid_num);
-	if(!memcmp(UID_NUM,uid_num,6))
+	if(!memcmp(UID_NUM,uid_num,2))
 		return 0;
 	else
 		return 1;

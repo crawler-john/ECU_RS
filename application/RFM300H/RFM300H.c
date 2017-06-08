@@ -3,6 +3,8 @@
 #include "delay.h"
 #include "string.h"
 
+//#define CMT2300_DEBUG
+
 int RFM300_Bind_Uid(char *ECUID,char *UID,char channel,char rate)
 {
 	int i,check = 0;
@@ -35,7 +37,7 @@ int RFM300_Bind_Uid(char *ECUID,char *UID,char channel,char rate)
 	Senddata[22]=0x00;
 	Senddata[23]=0x00;
 	
-	for(i=4;i<(4+Senddata[2]);i++)
+	for(i=3;i<(3+Senddata[2]);i++)
 		check=check+Senddata[i];
 		
 	Senddata[24] = check/256;
@@ -43,15 +45,21 @@ int RFM300_Bind_Uid(char *ECUID,char *UID,char channel,char rate)
 	
 	Senddata[26]=0xFE;
 	Senddata[27]=0xFE;
-
+#ifdef CMT2300_DEBUG
+	for(i=0;i<28;i++)
+	{
+		SEGGER_RTT_printf(0, "%02x ",Senddata[i]);
+	}
+	SEGGER_RTT_printf(0, "\n",Senddata[i]);
+#endif
 	for(i=0;i<3;i++){
 		SendMessage((unsigned char *)Senddata,28);
-		delay_ms(20);
 		RF_leng = GetMessage((unsigned char *)Recvdata);
 		if((RF_leng==28)&&
 			(Recvdata[3]==0xD8)&&		//表示绑定成功
 			(!strncmp(&Senddata[4],&Recvdata[4],20)))
 		{
+			SEGGER_RTT_printf(0, "RFM300_Bind_Uid\n");
 				return 1;
 		}
 		else
@@ -96,26 +104,36 @@ int RFM300_Heart_Beat(char *ECUID,char *UID,char *mos_Status,char *IO_InitStatus
 	Senddata[22]=0x00;
 	Senddata[23]=0x00;
 	
-	for(i=4;i<(4+Senddata[2]);i++)
+	for(i=3;i<(3+Senddata[2]);i++)
 		check=check+Senddata[i];
 	Senddata[24] = check/256;
 	Senddata[25] = check%256;
 	Senddata[26]=0xFE;
 	Senddata[27]=0xFE;
 
+#ifdef CMT2300_DEBUG
+	for(i=0;i<28;i++)
+	{
+		SEGGER_RTT_printf(0, "%02x ",Senddata[i]);
+	}
+	SEGGER_RTT_printf(0, "\n");
+#endif
+	
 	for(i=0;i<3;i++){
 		SendMessage((unsigned char *)Senddata,28);
-		delay_ms(20);
+
 		RF_leng = GetMessage((unsigned char *)Recvdata);
 		if((RF_leng==28)&&
 			(Recvdata[3]==0xD0)&&
 		(!strncmp(&Senddata[4],&Recvdata[4],12)))
 		{
-			*mos_Status = Senddata[16];
-			*IO_InitStatus = Senddata[17];
-			*TimeoutNum = Senddata[18]*256+Senddata[19];
-			*offNum = Senddata[20]*256 +Senddata[21];
-			*Ver =Senddata[22] ;
+
+			*mos_Status = Recvdata[16];
+			*IO_InitStatus = Recvdata[17];
+			*TimeoutNum = Recvdata[18]*256+Recvdata[19];
+			*offNum = Recvdata[20]*256 +Recvdata[21];
+			*Ver =Recvdata[22];
+			SEGGER_RTT_printf(0, "RFM300_Heart_Beat  %d %d %d %d %d \n",*mos_Status,*IO_InitStatus,*TimeoutNum,*offNum,*Ver);
 			return 1;
 		}
 		else
@@ -160,26 +178,36 @@ int RFM300_IO_Init(char *ECUID,char *UID,char IO_Status,char *mos_Status,char *I
 	Senddata[22]=0x00;
 	Senddata[23]=0x00;
 	
-	for(i=4;i<(4+Senddata[2]);i++)
+	for(i=3;i<(3+Senddata[2]);i++)
 		check=check+Senddata[i];
 	Senddata[24] = check/256;
 	Senddata[25] = check%256;
 	Senddata[26]=0xFE;
 	Senddata[27]=0xFE;
-
+	
+#ifdef CMT2300_DEBUG
+	for(i=0;i<28;i++)
+	{
+		SEGGER_RTT_printf(0, "%02x ",Senddata[i]);
+	}
+	SEGGER_RTT_printf(0, "\n");
+#endif
+	
 	for(i=0;i<3;i++){
 		SendMessage((unsigned char *)Senddata,28);
-		delay_ms(20);
+
 		RF_leng = GetMessage((unsigned char *)Recvdata);
 		if((RF_leng==28)&&
 			(Recvdata[3]==0xD1)&&
 			(!strncmp(&Senddata[4],&Recvdata[4],12)))
 		{
-			*mos_Status = Senddata[16];
-			*IO_InitStatus = Senddata[17];
-			*TimeoutNum = Senddata[18]*256+Senddata[19];
-			*offNum = Senddata[20]*256 +Senddata[21];
-			*Ver =Senddata[22] ;
+			*mos_Status = Recvdata[16];
+			*IO_InitStatus = Recvdata[17];
+			*TimeoutNum = Recvdata[18]*256+Recvdata[19];
+			*offNum = Recvdata[20]*256 +Recvdata[21];
+			*Ver =Recvdata[22] ;
+			SEGGER_RTT_printf(0, "RFM300_IO_Init  %d %d %d %d %d \n",*mos_Status,*IO_InitStatus,*TimeoutNum,*offNum,*Ver);
+
 			return 1;			
 		}
 		else
@@ -220,7 +248,7 @@ int RFM300_Set_Uid(char *ECUID,char *UID,int channel,int rate,char *NewUid,char 
 	Senddata[22]=NewUid[4];
 	Senddata[23]=NewUid[5];
 	
-	for(i=4;i<(4+Senddata[2]);i++)
+	for(i=3;i<(3+Senddata[2]);i++)
 		check=check+Senddata[i];
 	Senddata[24] = check/256;
 	Senddata[25] = check%256;
@@ -228,17 +256,27 @@ int RFM300_Set_Uid(char *ECUID,char *UID,int channel,int rate,char *NewUid,char 
 	Senddata[26]=0xFE;
 	Senddata[27]=0xFE;
 
+#ifdef CMT2300_DEBUG
+	for(i=0;i<28;i++)
+	{
+		SEGGER_RTT_printf(0, "%02x ",Senddata[i]);
+	}
+	SEGGER_RTT_printf(0, "\n",Senddata[i]);
+#endif
+	
 	for(i=0;i<3;i++){
 		SendMessage((unsigned char *)Senddata,28);
-		delay_ms(20);
+
 		RF_leng = GetMessage((unsigned char *)Recvdata);
 		if((RF_leng==28)&&
 			(Recvdata[3]==0xD9)&&
 			(!strncmp(&Senddata[4],&Recvdata[4],6))
 			&&(!strncmp(&Senddata[18],&Recvdata[10],6)))
 		{
-				*SaveChannel = Senddata[16];
-				*SaveRate = Senddata[17];
+				*SaveChannel = Recvdata[16];
+				*SaveRate = Recvdata[17];
+				SEGGER_RTT_printf(0, "RFM300_Set_Uid  %d %d %d %d %d \n",*SaveChannel,*SaveRate);
+
 				return 1;
 		}
 		else

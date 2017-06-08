@@ -43,7 +43,7 @@ void USART1_Response_TEST(char testItem,char testflag)
 	
 	sprintf(SendData,"ECU11001803%02d%02dEND",testItem,testflag);
 	SEGGER_RTT_printf(0, "USART1_Response_TEST %s\n",SendData);
-	UART1_SendData(SendData, 16);
+	UART1_SendData(SendData, 18);
 }
 void USART1_Response_SET_NETWORK(char setflag)
 {

@@ -1,3 +1,18 @@
+/*****************************************************************************/
+/* File      : usart.c                                                        */
+/*****************************************************************************/
+/*  History:                                                                 */
+/*****************************************************************************/
+/*  Date       * Author          * Changes                                   */
+/*****************************************************************************/
+/*  2017-06-02 * Shengfeng Dong  * Creation of the file                      */
+/*             *                 *                                           */
+/*****************************************************************************/
+
+/*****************************************************************************/
+/*  Include Files                                                            */
+/*****************************************************************************/
+
 #include "sys.h"
 #include "usart.h"	
 #include "SEGGER_RTT.h"
@@ -5,11 +20,16 @@
 #include "string.h"
 #include "delay.h"
 
-
+/*****************************************************************************/
+/*  Definitions                                                              */
+/*****************************************************************************/
 #define WIFI_RCC                    RCC_APB2Periph_GPIOB
 #define WIFI_GPIO                   GPIOB
 #define WIFI_PIN                    (GPIO_Pin_15)
 
+/*****************************************************************************/
+/*  Function Implementations                                                 */
+/*****************************************************************************/
 unsigned short packetlen(unsigned char *packet)
 {
 	unsigned short len = 0;
@@ -31,7 +51,7 @@ int WIFI_SendData(char *data, int num)
 	return index;
 }
 
-//WIFI发送函数 
+//USART1发送函数 
 int UART1_SendData(char *data, int num)
 {      
 	int index = 0;
@@ -119,6 +139,10 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 		USART1_RX_BUF[USART1Cur] = USART_ReceiveData(USART1);//(USART2->DR);	//读取接收到的数据
 		//SEGGER_RTT_printf(0, "%x %c\n",USART1_RX_BUF[USART1Cur],USART1_RX_BUF[USART1Cur]);
 		USART1Cur +=1;
+		if(USART1Cur >=USART1_REC_LEN)
+		{
+			USART1Cur = 0;
+		}
 
 		
 
@@ -144,6 +168,7 @@ void USART1_GetEvent(int *messageLen)
 						{
 							USART1Cur = 0;
 							USART1_pos = 0;
+							Usart1eStateMachine = EN_RECV_ST_GET_HEAD;
 						}
 				}
 				
@@ -153,6 +178,7 @@ void USART1_GetEvent(int *messageLen)
 						{
 							USART1Cur = 0;
 							USART1_pos = 0;
+							Usart1eStateMachine = EN_RECV_ST_GET_HEAD;
 						}
 				}	
 				
@@ -162,6 +188,7 @@ void USART1_GetEvent(int *messageLen)
 						{
 							USART1Cur = 0;
 							USART1_pos = 0;
+							Usart1eStateMachine = EN_RECV_ST_GET_HEAD;
 						}
 				}
 				
@@ -170,7 +197,7 @@ void USART1_GetEvent(int *messageLen)
 					//SEGGER_RTT_printf(0, "APS11\n");
 					Usart1eStateMachine = EN_RECV_ST_GET_LEN;
 
-					//TIM3_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+					TIM4_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
 					break;
 				}
 				
@@ -228,7 +255,8 @@ void USART1_GetEvent(int *messageLen)
 		//receive END
 		if(Usart1eStateMachine == EN_RECV_ST_GET_END)
 		{
-			////SEGGER_RTT_printf(0, "EN_RECV_ST_GET_END\n");
+		
+			SEGGER_RTT_printf(0, "EN_RECV_ST_GET_END\n");
 			while(USART1_pos < USART1Cur)
       {
 				TIM4_Int_Deinit();
@@ -239,6 +267,7 @@ void USART1_GetEvent(int *messageLen)
 						{
 							USART1Cur = 0;
 							USART1_pos = 0;
+							Usart1eStateMachine = EN_RECV_ST_GET_HEAD;
 						}
 				}
 				
@@ -248,6 +277,7 @@ void USART1_GetEvent(int *messageLen)
 						{
 							USART1Cur = 0;
 							USART1_pos = 0;
+							Usart1eStateMachine = EN_RECV_ST_GET_HEAD;
 						}
 				}	
 				
@@ -257,6 +287,7 @@ void USART1_GetEvent(int *messageLen)
 						{
 							USART1Cur = 0;
 							USART1_pos = 0;
+							Usart1eStateMachine = EN_RECV_ST_GET_HEAD;
 						}
 						//SEGGER_RTT_printf(0, "EN_RECV_ST_GET_END OVER\n");
 						
@@ -364,7 +395,10 @@ void USART2_IRQHandler(void)                	//串口1中断服务程序
 		USART_RX_BUF[Cur] = USART_ReceiveData(USART2);//(USART2->DR);	//读取接收到的数据
 		//SEGGER_RTT_printf(0, "%x %c\n",USART_RX_BUF[Cur],USART_RX_BUF[Cur]);
 		Cur +=1;
-
+		if(USART1Cur >=USART_REC_LEN)
+		{
+			Cur = 0;
+		}
 	}
 } 
 
@@ -387,6 +421,7 @@ void WIFI_GetEvent(int *messageLen)
 						{
 							Cur = 0;
 							pos = 0;
+							eStateMachine = EN_RECV_ST_GET_HEAD;
 						}
 				}
 				
@@ -396,6 +431,7 @@ void WIFI_GetEvent(int *messageLen)
 						{
 							Cur = 0;
 							pos = 0;
+							eStateMachine = EN_RECV_ST_GET_HEAD;
 						}
 				}	
 				
@@ -405,6 +441,7 @@ void WIFI_GetEvent(int *messageLen)
 						{
 							Cur = 0;
 							pos = 0;
+							eStateMachine = EN_RECV_ST_GET_HEAD;
 						}
 				}
 				
@@ -482,6 +519,7 @@ void WIFI_GetEvent(int *messageLen)
 						{
 							Cur = 0;
 							pos = 0;
+							eStateMachine = EN_RECV_ST_GET_HEAD;
 						}
 				}
 				
@@ -491,6 +529,7 @@ void WIFI_GetEvent(int *messageLen)
 						{
 							Cur = 0;
 							pos = 0;
+							eStateMachine = EN_RECV_ST_GET_HEAD;
 						}
 				}	
 				
@@ -500,6 +539,7 @@ void WIFI_GetEvent(int *messageLen)
 						{
 							Cur = 0;
 							pos = 0;
+							eStateMachine = EN_RECV_ST_GET_HEAD;
 						}
 						//SEGGER_RTT_printf(0, "EN_RECV_ST_GET_END OVER\n");
 						
@@ -515,6 +555,7 @@ void WIFI_GetEvent(int *messageLen)
 						eStateMachine = EN_RECV_ST_GET_HEAD;
 						Cur = 0;
 						pos = 0;
+						
 						
 						TIM3_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
 						break;
@@ -803,6 +844,36 @@ int WIFI_ClearPasswd(void)
 
 }
 
+
+int WIFI_Test(void)
+{
+	int ret = 0,index;
+	for(index = 0;index<3;index++)
+	{
+		delay_ms(200);
+		ret =AT();
+		if(ret == 0) break;
+	}
+	if(ret == -1)
+	{
+		for(index = 0;index<3;index++)
+		{
+			delay_ms(200);
+			ret =AT_ENTM();
+			if(ret == 0)return 0;
+		}
+	
+		return -1;
+	}	
+	
+	for(index = 0;index<3;index++)
+	{
+		delay_ms(200);
+		ret =AT_ENTM();
+		if(ret == 0) return 0;
+	}
+	return -1;
+}
 
 #endif	
 
