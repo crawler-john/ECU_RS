@@ -42,13 +42,16 @@ void uart1_init(u32 bound);
 
 int AT(void);
 int AT_ENTM(void);
+int AT_WAP(char *ECUID12);
 int AT_WAKEY(char *NewPasswd);
 int WIFI_ChangePasswd(char *NewPasswd);
 int WIFI_Reset(void);
 int AT_Z(void);
 int WIFI_ClearPasswd(void);
+int WIFI_SoftReset(void);
 
 int WIFI_Test(void);
+int WIFI_Factory(char *ECUID12);
 #endif
 
 

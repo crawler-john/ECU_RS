@@ -52,14 +52,14 @@ int RFM300_Bind_Uid(char *ECUID,char *UID,char channel,char rate)
 	}
 	SEGGER_RTT_printf(0, "\n",Senddata[i]);
 #endif
-	for(i=0;i<3;i++){
+	for(i=0;i<1;i++){
 		SendMessage((unsigned char *)Senddata,28);
 		RF_leng = GetMessage((unsigned char *)Recvdata);
 		if((RF_leng==28)&&
 			(Recvdata[3]==0xD8)&&		//表示绑定成功
 			(!strncmp(&Senddata[4],&Recvdata[4],20)))
 		{
-			SEGGER_RTT_printf(0, "RFM300_Bind_Uid\n");
+			SEGGER_RTT_printf(0, "RFM300_Bind_Uid %02x%02x%02x%02x%02x%02x\n",Senddata[10],Senddata[11],Senddata[12],Senddata[13],Senddata[14],Senddata[15]);
 				return 1;
 		}
 		else
@@ -72,7 +72,7 @@ int RFM300_Bind_Uid(char *ECUID,char *UID,char channel,char rate)
 	return 0;
 }
 
-int RFM300_Heart_Beat(char *ECUID,char *UID,char *mos_Status,char *IO_InitStatus,unsigned short *TimeoutNum,unsigned short * offNum,char *Ver)
+int RFM300_Heart_Beat(char *ECUID,char *UID,char *mos_Status,char *IO_InitStatus,unsigned short *heart_rate,unsigned short * offNum,char *Ver)
 {
 	int i,check = 0;
 	unsigned char RF_leng = 0;
@@ -119,7 +119,7 @@ int RFM300_Heart_Beat(char *ECUID,char *UID,char *mos_Status,char *IO_InitStatus
 	SEGGER_RTT_printf(0, "\n");
 #endif
 	
-	for(i=0;i<3;i++){
+	for(i=0;i<1;i++){
 		SendMessage((unsigned char *)Senddata,28);
 
 		RF_leng = GetMessage((unsigned char *)Recvdata);
@@ -130,10 +130,10 @@ int RFM300_Heart_Beat(char *ECUID,char *UID,char *mos_Status,char *IO_InitStatus
 
 			*mos_Status = Recvdata[16];
 			*IO_InitStatus = Recvdata[17];
-			*TimeoutNum = Recvdata[18]*256+Recvdata[19];
-			*offNum = Recvdata[20]*256 +Recvdata[21];
+			*offNum = Recvdata[18]*256+Recvdata[19];
+			*heart_rate = Recvdata[20]*256 +Recvdata[21];
 			*Ver =Recvdata[22];
-			SEGGER_RTT_printf(0, "RFM300_Heart_Beat  %d %d %d %d %d \n",*mos_Status,*IO_InitStatus,*TimeoutNum,*offNum,*Ver);
+			SEGGER_RTT_printf(0, "RFM300_Heart_Beat %02x%02x%02x%02x%02x%02x  %d %d %d %d %d \n",Senddata[10],Senddata[11],Senddata[12],Senddata[13],Senddata[14],Senddata[15],*mos_Status,*IO_InitStatus,*heart_rate,*offNum,*Ver);
 			return 1;
 		}
 		else
@@ -146,7 +146,7 @@ int RFM300_Heart_Beat(char *ECUID,char *UID,char *mos_Status,char *IO_InitStatus
 	return 0;
 }
 
-int RFM300_IO_Init(char *ECUID,char *UID,char IO_Status,char *mos_Status,char *IO_InitStatus,unsigned short *TimeoutNum,unsigned short * offNum,char *Ver)
+int RFM300_IO_Init(char *ECUID,char *UID,char IO_Status,char *mos_Status,char *IO_InitStatus,unsigned short *heart_rate,unsigned short * offNum,char *Ver)
 {
 	int i,check = 0;
 	unsigned char RF_leng = 0;
@@ -203,10 +203,10 @@ int RFM300_IO_Init(char *ECUID,char *UID,char IO_Status,char *mos_Status,char *I
 		{
 			*mos_Status = Recvdata[16];
 			*IO_InitStatus = Recvdata[17];
-			*TimeoutNum = Recvdata[18]*256+Recvdata[19];
-			*offNum = Recvdata[20]*256 +Recvdata[21];
+			*offNum = Recvdata[18]*256+Recvdata[19];
+			*heart_rate = Recvdata[20]*256 +Recvdata[21];
 			*Ver =Recvdata[22] ;
-			SEGGER_RTT_printf(0, "RFM300_IO_Init  %d %d %d %d %d \n",*mos_Status,*IO_InitStatus,*TimeoutNum,*offNum,*Ver);
+			SEGGER_RTT_printf(0, "RFM300_IO_Init  %d %d %d %d %d \n",*mos_Status,*IO_InitStatus,*heart_rate,*offNum,*Ver);
 
 			return 1;			
 		}

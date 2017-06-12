@@ -7,15 +7,14 @@
 #include "SEGGER_RTT.h"
 #include "inverter.h"
 #include "USART1Comm.h"
-
-
+#include "delay.h"
 
 typedef enum
 { 
-    HARDTEST_TEST_ALL    	= 1,		//接收数据头
-    HARDTEST_TEST_EEPROM  = 2,	//接收数据长度   其中数据部分的长度为接收到长度减去12个字节
-    HARDTEST_TEST_WIFI  	= 3,	//接收数据部分数据
-    HARDTEST_TEST_433  		= 4
+    HARDTEST_TEST_ALL    	= 0,		//接收数据头
+    HARDTEST_TEST_EEPROM  = 1,	//接收数据长度   其中数据部分的长度为接收到长度减去12个字节
+    HARDTEST_TEST_WIFI  	= 2,	//接收数据部分数据
+    HARDTEST_TEST_433  		= 3
 } eHardWareID;// receive state machin
 
 
@@ -83,6 +82,8 @@ void process_HeartBeatEvent(void)
 	//发送心跳包
 	if(	vaildNum >0	)
 	{
+		//SEGGER_RTT_printf(0, "RFM300_Heart_Beat %02x%02x%02x%02x%02x%02x\n",inverterInfo[curSequence].uid[0],inverterInfo[curSequence].uid[1],inverterInfo[curSequence].uid[2],inverterInfo[curSequence].uid[3],inverterInfo[curSequence].uid[4],inverterInfo[curSequence].uid[5]);
+
 		ret = RFM300_Heart_Beat(ECUID6,(char *)inverterInfo[curSequence].uid,(char *)&inverterInfo[curSequence].mos_status,&IO_Init_Status,&inverterInfo[curSequence].heart_rate,&inverterInfo[curSequence].off_times,&ver);
 		if(ret == 0)
 		{
@@ -112,7 +113,7 @@ void process_WIFIEvent(void)
 				//获取基本信息
 				//获取信号强度
 				Signal_Level = ReadRssiValue(1);
-				APP_Response_BaseInfo(ECUID12,VERSION_ECU_RS,Signal_Level,Signal_Channel,5,SOFEWARE_VERSION);
+				APP_Response_BaseInfo(ECUID12,VERSION_ECU_RS,Signal_Level,"00",5,SOFEWARE_VERSION);
 				break;
 					
 			case COMMAND_SYSTEMINFO:			//获取系统信息			APS11002602406000000009END
@@ -143,7 +144,7 @@ void process_WIFIEvent(void)
 					APP_Response_SetNetwork(0x00);
 					init_inverter(inverterInfo);
 					//进行一些绑定操作
-					bind_inverter(inverterInfo);
+					//bind_inverter(inverterInfo);
 				}	else
 				{	//不匹配
 					APP_Response_SetNetwork(0x01);
@@ -192,15 +193,15 @@ void process_WIFIEvent(void)
 					//读取旧密码，如果旧密码相同，设置新密码
 					Read_WIFI_PW(EEPROMPasswd,100);
 							
-					//if(!memcmp(EEPROMPasswd,OldPassword,oldLen))
-					//{
+					if(!memcmp(EEPROMPasswd,OldPassword,oldLen))
+					{
 						APP_Response_SetWifiPassword(0x00);
 						WIFI_ChangePasswd(NewPassword);
 						Write_WIFI_PW(NewPassword,newLen);
-					//}else
-					//{
-						//APP_Response_SetWifiPassword(0x02);
-					//}
+					}else
+					{
+						APP_Response_SetWifiPassword(0x02);
+					}
 							
 				}	else
 				{	//不匹配
@@ -256,6 +257,16 @@ void process_UART1Event(void)
 					USART1_ECUID6[4] = ((USART1_ECUID12[5]-'0')<<4) + (USART1_ECUID12[9]-'0') ;
 					USART1_ECUID6[5] = ((USART1_ECUID12[10]-'0')<<4) + (USART1_ECUID12[11]-'0') ;
 					ret = Write_ECUID(USART1_ECUID6);													  		//ECU ID
+					//设置WIFI密码
+					if(ret != 0) 	USART1_Response_SET_ID(ret);
+					
+					//设置WIFI密码
+					USART1_ECUID12[12] = '\0';
+					delay_ms(5000);
+					ret = WIFI_Factory(USART1_ECUID12);
+					//写入WIFI密码
+					Write_WIFI_PW("88888888",8);	//WIFI密码		
+					
 					USART1_Response_SET_ID(ret);
 					init_ecu();	
 				}else
@@ -284,7 +295,7 @@ void process_UART1Event(void)
 				SEGGER_RTT_printf(0, "WIFI_Recv_Event%d %s\n",COMMAND_TEST,USART1_RecvData);
 				testItem =((USART1_RecvData[11]-'0')<<4) + (USART1_RecvData[12]-'0');
 				ret = HardwareTest(testItem);
-				SEGGER_RTT_printf(0, "%d \n",testItem);
+				SEGGER_RTT_printf(0, "%d %d\n",testItem,ret);
 				USART1_Response_TEST(testItem,ret);
 				break;
 						
@@ -292,7 +303,7 @@ void process_UART1Event(void)
 				SEGGER_RTT_printf(0, "WIFI_Recv_Event%d %s\n",COMMAND_SET_NETWORK,USART1_RecvData);
 				{	//匹配成功进行相应的操作
 					
-					SEGGER_RTT_printf(0, "COMMAND_SETNETWORK   Mapping");
+					SEGGER_RTT_printf(0, "COMMAND_SETNETWORK   Mapping\n");
 							
 					AddNum = (messageUsart1Len - 17)/6;
 					//将数据写入EEPROM
@@ -300,7 +311,7 @@ void process_UART1Event(void)
 					USART1_Response_SET_NETWORK(0x00);
 					init_inverter(inverterInfo);
 					//进行一些绑定操作
-					bind_inverter(inverterInfo);
+					//bind_inverter(inverterInfo);
 				}	
 				break;
 						
@@ -318,7 +329,33 @@ void process_UART1Event(void)
 //按键事件处理
 void process_KEYEvent(void)
 {
+	int ret =0,i = 0;
 	SEGGER_RTT_printf(0, "KEY_FormatWIFI_Event Start\n");
-	WIFI_ClearPasswd();
+		delay_ms(5000);
+
+
+	for(i = 0;i<3;i++)
+	{
+		
+		ret = WIFI_Factory(ECUID12);
+		if(ret == 0) break;
+	}
+	
+	if(ret == 0) 	//写入WIFI密码
+		Write_WIFI_PW("88888888",8);	//WIFI密码	
+	
 	SEGGER_RTT_printf(0, "KEY_FormatWIFI_Event End\n");
+}
+
+void process_WIFI_RST(void)
+{
+	int ret =0,i = 0;
+	SEGGER_RTT_printf(0, "process_WIFI_RST Start\n");
+	for(i = 0;i<3;i++)
+	{
+		ret = WIFI_SoftReset();
+		if(ret == 0) break;
+	}
+	
+	SEGGER_RTT_printf(0, "process_WIFI_RST End\n");
 }

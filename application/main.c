@@ -62,9 +62,17 @@ int main(void)
 	SEGGER_RTT_printf(0, "init OK \n");
 	init_ecu();										//初始化ECU
 	init_inverter(inverterInfo);	//初始化逆变器
-
+#if 1
 	while(1)
 	{	
+		//检测WIFI事件
+		WIFI_GetEvent(&messageLen);
+		//判断是否有WIFI接收事件
+		if(WIFI_Recv_Event == 1)
+		{
+			process_WIFIEvent();
+			WIFI_Recv_Event = 0;
+		}
 		//检测USART1事件
 		USART1_GetEvent(&messageUsart1Len);
 		if(USART1_Recv_Event == 1)
@@ -80,6 +88,13 @@ int main(void)
 			KEY_FormatWIFI_Event = 0;
 		}
 		
+		//WIFI复位事件
+		if(WIFI_RST_Event == 1)
+		{
+			process_WIFI_RST();
+			WIFI_RST_Event = 0;
+		}
+		
 		//判断是否有433模块心跳超时事件
 		if(COMM_Timeout_Event == 1)
 		{
@@ -87,15 +102,9 @@ int main(void)
 			COMM_Timeout_Event = 0;
 		}
 		
-		//检测WIFI事件
-		WIFI_GetEvent(&messageLen);
-		//判断是否有WIFI接收事件
-		if(WIFI_Recv_Event == 1)
-		{
-			process_WIFIEvent();
-			WIFI_Recv_Event = 0;
-		}
+
 		
 	}	
+#endif
  }
 

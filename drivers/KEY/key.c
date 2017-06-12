@@ -20,6 +20,9 @@
 /*****************************************************************************/
 /*  Function Implementations                                                 */
 /*****************************************************************************/
+
+
+int FirstStart = 1;
 //按键IO初始化
 void KEY_Init(void) 
 { 
@@ -50,13 +53,13 @@ void EXTIX_Init(void)
  	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
  	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
  	EXTI_Init(&EXTI_InitStructure);	 	//根据EXTI_InitStruct中指定的参数初始化外设EXTI寄存器
-
+	SEGGER_RTT_printf(0, "11111111111111111111 \n");
  	NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn;			//使能按键KEY_RESET所在的外部中断通道
  	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x00;	//抢占优先级2
  	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x03;					//子优先级3
  	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;								//使能外部中断通道
  	NVIC_Init(&NVIC_InitStructure);  
-		
+		SEGGER_RTT_printf(0, "2222222222222222222 \n");
 }
 signed char KEY_FormatWIFI_Event = 0;
 int keyflag = 0;
@@ -64,13 +67,19 @@ int keyflag = 0;
 void EXTI9_5_IRQHandler(void)
 {
 	delay_ms(20);
+	if(FirstStart == 1)
+	{
+		FirstStart = 0;
+		EXTI_ClearITPendingBit(EXTI_Line9); //清除LINE9上的中断标志位z  
+		return;
+	}
 	if(KEY_Reset==1)	 	 
 	{
 		keyflag++;
 		if(keyflag > 1)
 		{
 			//将配置文件恢复到出厂设置
-			//SEGGER_RTT_printf(0, "EXTI9_5_IRQHandler \n");
+			SEGGER_RTT_printf(0, "EXTI9_5_IRQHandler \n");
 			keyflag = 0;
 			KEY_FormatWIFI_Event = 1;
 			

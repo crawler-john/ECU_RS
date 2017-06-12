@@ -136,11 +136,12 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 {
 	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)  //接收中断(接收到的数据必须是0x0d 0x0a结尾)
 	{
-		USART1_RX_BUF[USART1Cur] = USART_ReceiveData(USART1);//(USART2->DR);	//读取接收到的数据
+		USART1_RX_BUF[USART1Cur] = USART_ReceiveData(USART1);//(USART1->DR);	//读取接收到的数据
 		//SEGGER_RTT_printf(0, "%x %c\n",USART1_RX_BUF[USART1Cur],USART1_RX_BUF[USART1Cur]);
 		USART1Cur +=1;
-		if(USART1Cur >=USART1_REC_LEN)
+		if(USART1Cur >= USART1_REC_LEN)
 		{
+			SEGGER_RTT_printf(0, "%d \n",USART1Cur);
 			USART1Cur = 0;
 		}
 
@@ -194,7 +195,7 @@ void USART1_GetEvent(int *messageLen)
 				
 				if(5 == USART1_mvsize)   //接收版本号完毕
 				{
-					//SEGGER_RTT_printf(0, "APS11\n");
+					//SEGGER_RTT_printf(0, "ECU11\n");
 					Usart1eStateMachine = EN_RECV_ST_GET_LEN;
 
 					TIM4_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
@@ -218,7 +219,7 @@ void USART1_GetEvent(int *messageLen)
 				if(9 == USART1_mvsize)   //接收数据长度结束
 				{
 					USART1_PackLen = packetlen(&USART1_RX_BUF[5]);
-					//SEGGER_RTT_printf(0, "LENGTH : %d\n",PackLen);
+					//SEGGER_RTT_printf(0, "LENGTH : %d\n",USART1_PackLen);
 					//计算长度
 					Usart1eStateMachine = EN_RECV_ST_GET_DATA;
 
@@ -256,7 +257,7 @@ void USART1_GetEvent(int *messageLen)
 		if(Usart1eStateMachine == EN_RECV_ST_GET_END)
 		{
 		
-			SEGGER_RTT_printf(0, "EN_RECV_ST_GET_END\n");
+			//SEGGER_RTT_printf(0, "EN_RECV_ST_GET_END\n");
 			while(USART1_pos < USART1Cur)
       {
 				TIM4_Int_Deinit();
@@ -395,8 +396,9 @@ void USART2_IRQHandler(void)                	//串口1中断服务程序
 		USART_RX_BUF[Cur] = USART_ReceiveData(USART2);//(USART2->DR);	//读取接收到的数据
 		//SEGGER_RTT_printf(0, "%x %c\n",USART_RX_BUF[Cur],USART_RX_BUF[Cur]);
 		Cur +=1;
-		if(USART1Cur >=USART_REC_LEN)
+		if(Cur >=USART_REC_LEN)
 		{
+			SEGGER_RTT_printf(0, "%d \n",Cur);
 			Cur = 0;
 		}
 	}
@@ -486,7 +488,7 @@ void WIFI_GetEvent(int *messageLen)
 		//Continue to receive data
 		if(eStateMachine == EN_RECV_ST_GET_DATA)
 		{
-			////SEGGER_RTT_printf(0, "EN_RECV_ST_GET_DATA\n");
+			//SEGGER_RTT_printf(0, "EN_RECV_ST_GET_DATA\n");
 			while(pos < Cur)
       {
 				TIM3_Int_Deinit();
@@ -508,7 +510,7 @@ void WIFI_GetEvent(int *messageLen)
 		//receive END
 		if(eStateMachine == EN_RECV_ST_GET_END)
 		{
-			////SEGGER_RTT_printf(0, "EN_RECV_ST_GET_END\n");
+			//SEGGER_RTT_printf(0, "EN_RECV_ST_GET_END\n");
 			while(pos < Cur)
       {
 				TIM3_Int_Deinit();
@@ -664,7 +666,33 @@ int AT_Z(void)
 	
 }
 
+//设置WIFI SSID
 
+int AT_WAP(char *ECUID12)
+{
+	char AT[100] = { '\0' };
+	clear_WIFI();
+	//发送"AT+WAKEY\n",返回+ok
+	sprintf(AT,"AT+WAP=11BGN,ECU_RS_%s,Auto\n",ECUID12);
+	SEGGER_RTT_printf(0, "%s",AT);
+	WIFI_SendData(AT, (strlen(AT)+1));
+	
+	delay_ms(1000);
+	
+	if(Cur < 10)
+	{
+		return -1;
+	}else
+	{
+		if(memcmp(&USART_RX_BUF[strlen(AT)+1],"+ok",3))
+		{
+			return -1;
+		}
+	}
+	SEGGER_RTT_printf(0, "AT+WAP :+ok\n");
+	clear_WIFI();
+	return 0;
+}
 
 //设置WIFI密码
 int AT_WAKEY(char *NewPasswd)
@@ -776,12 +804,52 @@ int WIFI_Reset(void)
 {
 	GPIO_SetBits(WIFI_GPIO, WIFI_PIN);
 	
-	delay_ms(1000);
+	delay_ms(3000);
 	GPIO_ResetBits(WIFI_GPIO, WIFI_PIN);
 	return 0;
 }
 
-
+int WIFI_SoftReset(void)
+{
+	int ret = 0,index;
+	for(index = 0;index<3;index++)
+	{
+		delay_ms(200);
+		ret =AT();
+		if(ret == 0) break;
+	}
+	if(ret == -1)
+	{
+		for(index = 0;index<3;index++)
+		{
+			delay_ms(200);
+			ret =AT_ENTM();
+			if(ret == 0) break;
+		}
+	
+		return -1;
+	}	
+	
+	delay_ms(200);	
+	
+	for(index = 0;index<3;index++)
+	{
+		delay_ms(200);
+		ret =AT_Z();
+		if(ret == 0) return 0;
+	}
+	
+	for(index = 0;index<3;index++)
+	{
+		delay_ms(200);
+		ret =AT_ENTM();;
+		if(ret == 0) break;
+	}
+	if(ret == -1) return -1;
+	
+	WIFI_Reset();	
+	return 0;
+}
 
 int WIFI_ClearPasswd(void)
 {
@@ -875,8 +943,69 @@ int WIFI_Test(void)
 	return -1;
 }
 
+
+int WIFI_Factory(char *ECUID12)
+{
+	int ret = 0,index;
+	for(index = 0;index<3;index++)
+	{
+		delay_ms(200);
+		ret =AT();
+		if(ret == 0) break;
+	}
+	if(ret == -1)
+	{
+		for(index = 0;index<3;index++)
+		{
+			delay_ms(200);
+			ret =AT_ENTM();
+			if(ret == 0) break;
+		}
+	
+		return -1;
+	}	
+	
+	delay_ms(200);
+	
+	for(index = 0;index<3;index++)
+	{
+		delay_ms(200);
+		ret = AT_WAP(ECUID12);
+		ret = AT_WAKEY("88888888");
+		if(ret == 0) break;
+	}
+	if(ret == -1)
+	{
+		for(index = 0;index<3;index++)
+		{
+			delay_ms(200);
+			ret =AT_ENTM();
+			if(ret == 0) break;
+		}
+	
+		return -1;
+	}		
+	
+	for(index = 0;index<3;index++)
+	{
+		delay_ms(200);
+		ret =AT_Z();
+		if(ret == 0) return 0;
+	}
+	
+	for(index = 0;index<3;index++)
+	{
+		delay_ms(200);
+		ret =AT_ENTM();;
+		if(ret == 0) break;
+	}
+	if(ret == -1) return -1;
+	
+	WIFI_Reset();	
+	return 0;
+
+}
+
+
 #endif	
-
-
-
 

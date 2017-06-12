@@ -52,6 +52,7 @@ int init_inverter(inverter_info *inverter)
 	for(i=0; (i<MAXINVERTERCOUNT && i<vaildNum); i++, curinverter++)
 	{
 		Read_UID((char *)curinverter->uid,(i+1));
+		SEGGER_RTT_printf(0, "uid%d: %02x%02x%02x%02x%02x%02x\n",(i+1),curinverter->uid[0],curinverter->uid[1],curinverter->uid[2],curinverter->uid[3],curinverter->uid[4],curinverter->uid[5]);
 	}
 	return 0;
 }
@@ -65,15 +66,16 @@ int add_inverter(inverter_info *inverter,int num,char *uidstring)
 	inverter_info *curinverter = inverter;
 	UID_NUM[0] = num/256;
 	UID_NUM[1] = num%256;
-
+	SEGGER_RTT_printf(0, "111111111111111 %x %x\n",UID_NUM[0],UID_NUM[1]);	
 	
 	//?¨°EEPROMD¡ä¨¨?¨ºy?Y
 	Write_UID_NUM((char *)&UID_NUM);
 
 	curinverter = inverter;
-	for(i=0; (i<MAXINVERTERCOUNT && i<vaildNum); i++, curinverter++)
+	for(i=0; (i<MAXINVERTERCOUNT && i<num); i++, curinverter++)
 	{
 		Write_UID(&uidstring[0+(i*6)],(i+1));
+		SEGGER_RTT_printf(0, "add_inverter uid%d: %02x%02x%02x%02x%02x%02x  \n",(i+1),uidstring[0+(i*6)],uidstring[1+(i*6)],uidstring[2+(i*6)],uidstring[3+(i*6)],uidstring[4+(i*6)],uidstring[5+(i*6)]);		
 	}
 	return 0;
 }
