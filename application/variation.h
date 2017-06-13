@@ -9,6 +9,8 @@ typedef struct inverter_info_t{
 	unsigned short heart_rate;	//心跳次数
 	unsigned short off_times;	//心跳超时次数
 	unsigned char mos_status;	//0x01 开、0x00 关
+	unsigned char bind_status;	//绑定状态  
+	unsigned char channel;	//信道状态
 }inverter_info;
 
 

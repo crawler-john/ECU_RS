@@ -8,6 +8,7 @@
 #include "inverter.h"
 #include "USART1Comm.h"
 #include "delay.h"
+#include "led.h"
 
 typedef enum
 { 
@@ -87,8 +88,22 @@ void process_HeartBeatEvent(void)
 		ret = RFM300_Heart_Beat(ECUID6,(char *)inverterInfo[curSequence].uid,(char *)&inverterInfo[curSequence].mos_status,&IO_Init_Status,&inverterInfo[curSequence].heart_rate,&inverterInfo[curSequence].off_times,&ver);
 		if(ret == 0)
 		{
-			RFM300_Bind_Uid(ECUID6,(char *)inverterInfo[curSequence].uid,0,0);
+			//查看绑定标志位，如果绑定未成功，尝试绑定。
+			if(inverterInfo[curSequence].bind_status != 1)
+			{
+				ret = RFM300_Bind_Uid(ECUID6,(char *)inverterInfo[curSequence].uid,0,0);
+				if(ret == 1)
+				{
+					if(Write_Bind(0x01,(curSequence+1)) == 0)
+					{
+						inverterInfo[curSequence].bind_status = 1;
+					}
+					
+				}
+			}
+			
 		}
+		//查看是否需要改变信道
 		
 		
 		curSequence++;
@@ -144,6 +159,7 @@ void process_WIFIEvent(void)
 					APP_Response_SetNetwork(0x00);
 					init_inverter(inverterInfo);
 					//进行一些绑定操作
+					LED_off();
 					//bind_inverter(inverterInfo);
 				}	else
 				{	//不匹配
@@ -164,7 +180,7 @@ void process_WIFIEvent(void)
 					APP_Response_SetChannel(0x00,New_Signal_Channel,Signal_Level);
 					//将其转换为1个字节
 					newChannel = New_Signal_Channel[0]*10+New_Signal_Channel[1];
-					changeChannel_inverter(inverterInfo,newChannel);
+					//changeChannel_inverter(inverterInfo,newChannel);
 					//改变自己的信道
 							
 					//保存新信道到Flash
@@ -311,6 +327,7 @@ void process_UART1Event(void)
 					USART1_Response_SET_NETWORK(0x00);
 					init_inverter(inverterInfo);
 					//进行一些绑定操作
+					LED_off();
 					//bind_inverter(inverterInfo);
 				}	
 				break;
@@ -326,7 +343,7 @@ void process_UART1Event(void)
 	}
 }
 
-//按键事件处理
+//按键初始化密码事件处理
 void process_KEYEvent(void)
 {
 	int ret =0,i = 0;
@@ -347,6 +364,7 @@ void process_KEYEvent(void)
 	SEGGER_RTT_printf(0, "KEY_FormatWIFI_Event End\n");
 }
 
+//无线复位处理
 void process_WIFI_RST(void)
 {
 	int ret =0,i = 0;

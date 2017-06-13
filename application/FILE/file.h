@@ -8,10 +8,12 @@
 #define  ADDRESS_Test 							0x000000			//用于板子收发测试    			10字节
 #define  ADDRESS_ECUID 							0x000010			//ECU-RS ID   需要我们转换	6字节
 #define  ADDRESS_CHANNEL 						0x000020			//优化器配置信息--信道			2字节
-#define  ADDRESS_IO_INIT_STATUS 				0x000030			//IO上电初始化状态					1字节
+#define  ADDRESS_IO_INIT_STATUS 		0x000030			//IO上电初始化状态					1字节
 #define  ADDRESS_UID_NUM 						0x000040			//优化器数量								2字节
 #define  ADDRESS_WIFI_PW 						0x000050			//WIFI密码									100字节
-#define  ADDRESS_UID 							0x000100			//优化器ID									6字节一个优化器
+#define  ADDRESS_UID 								0x000100			//优化器ID									6字节一个优化器
+#define  ADDRESS_UID_BIND 					0x000100			//优化器ID 绑定标志					
+#define  ADDRESS_UID_CHANNEL				0x000100			//优化器ID 信道							
 
 
 int Write_Test(char *Data_Ptr,unsigned char Counter);				//测试
@@ -38,5 +40,7 @@ int Read_UID_NUM(char *UID_NUM);
 int Write_UID(char *UID,int n);															//UID
 int Read_UID(char *UID,int n);			
 
+int Write_Bind(char BindFlag,int n);
+int Read_Bind(char *BindFlag,int n);
 
 #endif /*__FILE_H__*/

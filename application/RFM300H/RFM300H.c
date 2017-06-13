@@ -57,7 +57,18 @@ int RFM300_Bind_Uid(char *ECUID,char *UID,char channel,char rate)
 		RF_leng = GetMessage((unsigned char *)Recvdata);
 		if((RF_leng==28)&&
 			(Recvdata[3]==0xD8)&&		//表示绑定成功
-			(!strncmp(&Senddata[4],&Recvdata[4],20)))
+			(Senddata[4]==Recvdata[4])&&
+			(Senddata[5]==Recvdata[5])&&
+			(Senddata[6]==Recvdata[6])&&
+			(Senddata[7]==Recvdata[7])&&
+			(Senddata[8]==Recvdata[8])&&
+			(Senddata[9]==Recvdata[9])&&
+			(Senddata[10]==Recvdata[10])&&
+			(Senddata[11]==Recvdata[11])&&
+			(Senddata[12]==Recvdata[12])&&
+			(Senddata[13]==Recvdata[13])&&
+			(Senddata[14]==Recvdata[14])&&
+			(Senddata[15]==Recvdata[15]))
 		{
 			SEGGER_RTT_printf(0, "RFM300_Bind_Uid %02x%02x%02x%02x%02x%02x\n",Senddata[10],Senddata[11],Senddata[12],Senddata[13],Senddata[14],Senddata[15]);
 				return 1;
@@ -125,7 +136,18 @@ int RFM300_Heart_Beat(char *ECUID,char *UID,char *mos_Status,char *IO_InitStatus
 		RF_leng = GetMessage((unsigned char *)Recvdata);
 		if((RF_leng==28)&&
 			(Recvdata[3]==0xD0)&&
-		(!strncmp(&Senddata[4],&Recvdata[4],12)))
+			(Senddata[4]==Recvdata[4])&&
+			(Senddata[5]==Recvdata[5])&&
+			(Senddata[6]==Recvdata[6])&&
+			(Senddata[7]==Recvdata[7])&&
+			(Senddata[8]==Recvdata[8])&&
+			(Senddata[9]==Recvdata[9])&&
+			(Senddata[10]==Recvdata[10])&&
+			(Senddata[11]==Recvdata[11])&&
+			(Senddata[12]==Recvdata[12])&&
+			(Senddata[13]==Recvdata[13])&&
+			(Senddata[14]==Recvdata[14])&&
+			(Senddata[15]==Recvdata[15]))
 		{
 
 			*mos_Status = Recvdata[16];
@@ -199,7 +221,18 @@ int RFM300_IO_Init(char *ECUID,char *UID,char IO_Status,char *mos_Status,char *I
 		RF_leng = GetMessage((unsigned char *)Recvdata);
 		if((RF_leng==28)&&
 			(Recvdata[3]==0xD1)&&
-			(!strncmp(&Senddata[4],&Recvdata[4],12)))
+			(Senddata[4]==Recvdata[4])&&
+			(Senddata[5]==Recvdata[5])&&
+			(Senddata[6]==Recvdata[6])&&
+			(Senddata[7]==Recvdata[7])&&
+			(Senddata[8]==Recvdata[8])&&
+			(Senddata[9]==Recvdata[9])&&
+			(Senddata[10]==Recvdata[10])&&
+			(Senddata[11]==Recvdata[11])&&
+			(Senddata[12]==Recvdata[12])&&
+			(Senddata[13]==Recvdata[13])&&
+			(Senddata[14]==Recvdata[14])&&
+			(Senddata[15]==Recvdata[15]))
 		{
 			*mos_Status = Recvdata[16];
 			*IO_InitStatus = Recvdata[17];
@@ -270,8 +303,18 @@ int RFM300_Set_Uid(char *ECUID,char *UID,int channel,int rate,char *NewUid,char 
 		RF_leng = GetMessage((unsigned char *)Recvdata);
 		if((RF_leng==28)&&
 			(Recvdata[3]==0xD9)&&
-			(!strncmp(&Senddata[4],&Recvdata[4],6))
-			&&(!strncmp(&Senddata[18],&Recvdata[10],6)))
+			(Senddata[4]==Recvdata[4])&&
+			(Senddata[5]==Recvdata[5])&&
+			(Senddata[6]==Recvdata[6])&&
+			(Senddata[7]==Recvdata[7])&&
+			(Senddata[8]==Recvdata[8])&&
+			(Senddata[9]==Recvdata[9])&&
+			(Senddata[18]==Recvdata[10])&&
+			(Senddata[19]==Recvdata[11])&&
+			(Senddata[20]==Recvdata[12])&&
+			(Senddata[21]==Recvdata[13])&&
+			(Senddata[22]==Recvdata[14])&&
+			(Senddata[23]==Recvdata[15]))		
 		{
 				*SaveChannel = Recvdata[16];
 				*SaveRate = Recvdata[17];

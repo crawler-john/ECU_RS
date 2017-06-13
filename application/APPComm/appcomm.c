@@ -53,12 +53,12 @@ void APP_Response_SystemInfo(unsigned char mapflag,inverter_info *inverter,int v
 			SEGGER_RTT_printf(0, "SystemInfo %02x%02x%02x%02x%02x%02x   ",curinverter->uid[0],curinverter->uid[1],curinverter->uid[2],curinverter->uid[3],curinverter->uid[4],curinverter->uid[5]);
 			
 			SendData[19+i*INVERTERLENGTH] = curinverter->heart_rate /256;
-			SendData[19+i*INVERTERLENGTH] = curinverter->heart_rate %256;
+			SendData[20+i*INVERTERLENGTH] = curinverter->heart_rate %256;
 
 			SEGGER_RTT_printf(0, "heart_rate %d    ",curinverter->heart_rate);
 
 			SendData[21+i*INVERTERLENGTH] = curinverter->off_times/256;
-			SendData[21+i*INVERTERLENGTH] = curinverter->off_times%256;
+			SendData[22+i*INVERTERLENGTH] = curinverter->off_times%256;
 			SEGGER_RTT_printf(0, "off_times %d    ",curinverter->off_times);
 
 			memcpy(&SendData[23+i*INVERTERLENGTH],&curinverter->mos_status,1);

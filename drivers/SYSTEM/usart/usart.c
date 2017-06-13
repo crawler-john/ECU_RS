@@ -141,7 +141,7 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 		USART1Cur +=1;
 		if(USART1Cur >= USART1_REC_LEN)
 		{
-			SEGGER_RTT_printf(0, "%d \n",USART1Cur);
+			//SEGGER_RTT_printf(0, "%d \n",USART1Cur);
 			USART1Cur = 0;
 		}
 
@@ -156,7 +156,7 @@ void USART1_GetEvent(int *messageLen)
 		//receive start character
 		if(Usart1eStateMachine == EN_RECV_ST_GET_HEAD)    //接收报文头部
 		{
-			////SEGGER_RTT_printf(0, "EN_RECV_ST_GET_HEAD\n");
+			//SEGGER_RTT_printf(0, "EN_RECV_ST_GET_HEAD\n");
 			// check for the start character(SYNC_CHARACTER)
       // also check it's not arriving the end of valid data
       while(USART1_pos < USART1Cur)
