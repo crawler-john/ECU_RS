@@ -40,7 +40,10 @@ int Read_UID_NUM(char *UID_NUM);
 int Write_UID(char *UID,int n);															//UID
 int Read_UID(char *UID,int n);			
 
-int Write_Bind(char BindFlag,int n);
-int Read_Bind(char *BindFlag,int n);
+int Write_UID_Bind(char BindFlag,int n);
+int Read_UID_Bind(char *BindFlag,int n);
+
+int Write_UID_Channel(char channel,int n);
+int Read_UID_Channel(char *channel,int n);
 
 #endif /*__FILE_H__*/

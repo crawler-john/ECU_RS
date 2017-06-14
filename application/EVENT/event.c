@@ -94,7 +94,7 @@ void process_HeartBeatEvent(void)
 				ret = RFM300_Bind_Uid(ECUID6,(char *)inverterInfo[curSequence].uid,0,0);
 				if(ret == 1)
 				{
-					if(Write_Bind(0x01,(curSequence+1)) == 0)
+					if(Write_UID_Bind(0x01,(curSequence+1)) == 0)
 					{
 						inverterInfo[curSequence].bind_status = 1;
 					}
@@ -233,8 +233,8 @@ void process_WIFIEvent(void)
 					//获取IO初始状态
 					IO_Init_Status = WIFI_RecvData[23];
 					APP_Response_IOInitStatus(0x00);
-					APP_Response_SetChannel(0x00,New_Signal_Channel,Signal_Level);
-					changeIOinit_inverter(inverterInfo,IO_Init_Status);
+
+					//changeIOinit_inverter(inverterInfo,IO_Init_Status);
 					//保存新IO初始化状态到Flash
 					Write_IO_INIT_STATU(&IO_Init_Status);	
 					

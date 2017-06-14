@@ -167,7 +167,7 @@ int Read_UID(char *UID,int n)
 }
 
 
-int Write_Bind(char BindFlag,int n)
+int Write_UID_Bind(char BindFlag,int n)
 {
 	char bindFlag = '\0';
 	Write_24L512_nByte((ADDRESS_UID_BIND+0x08*(n-1)+6),1,(unsigned char *)&BindFlag);
@@ -179,10 +179,32 @@ int Write_Bind(char BindFlag,int n)
 }
 
 
-int Read_Bind(char *BindFlag,int n)
+int Read_UID_Bind(char *BindFlag,int n)
 {
 	if(BindFlag == NULL)
 		return -1;
 	Read_24L512_nByte((ADDRESS_UID_BIND+0x08*(n-1)+6),1, (unsigned char *)BindFlag);
+	return 0;
+}
+
+
+
+int Write_UID_Channel(char channel,int n)
+{
+	char Channel = '\0';
+	Write_24L512_nByte((ADDRESS_UID_CHANNEL+0x08*(n-1)+7),1,(unsigned char *)&channel);
+	Read_24L512_nByte((ADDRESS_UID_CHANNEL+0x08*(n-1)+7),1, (unsigned char *)&Channel);
+	if(!memcmp(&channel,&Channel,1))
+		return 0;
+	else
+		return 1;
+}
+
+
+int Read_UID_Channel(char *channel,int n)
+{
+	if(channel == NULL)
+		return -1;
+	Read_24L512_nByte((ADDRESS_UID_CHANNEL+0x08*(n-1)+7),1, (unsigned char *)channel);
 	return 0;
 }
