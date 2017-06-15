@@ -24,7 +24,7 @@ extern int UART1_ResolveFlag;
 
 
 void process_HeartBeatEvent(void);
-void process_WIFIEvent(void);
+void process_WIFIEvent(char *ID);
 void process_UART1Event(void);
 void process_KEYEvent(void);
 void process_WIFI_RST(void);

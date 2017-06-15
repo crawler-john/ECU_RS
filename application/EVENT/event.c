@@ -116,7 +116,7 @@ void process_HeartBeatEvent(void)
 }
 
 //WIFI事件处理
-void process_WIFIEvent(void)
+void process_WIFIEvent(char * ID)
 {
 	ResolveFlag =  Resolve_RecvData((char *)WIFI_RecvData,&Data_Len,&Command_Id);
 	if(ResolveFlag == 0)
@@ -128,7 +128,7 @@ void process_WIFIEvent(void)
 				//获取基本信息
 				//获取信号强度
 				Signal_Level = ReadRssiValue(1);
-				APP_Response_BaseInfo(ECUID12,VERSION_ECU_RS,Signal_Level,"00",5,SOFEWARE_VERSION);
+				APP_Response_BaseInfo(ID,ECUID12,VERSION_ECU_RS,Signal_Level,"00",5,SOFEWARE_VERSION);
 				break;
 					
 			case COMMAND_SYSTEMINFO:			//获取系统信息			APS11002602406000000009END
@@ -137,11 +137,11 @@ void process_WIFIEvent(void)
 				if(!memcmp(&WIFI_RecvData[11],ECUID12,12))
 				{	//匹配成功进行相应的操作
 					SEGGER_RTT_printf(0, "COMMAND_SYSTEMINFO  Mapping\n");
-					APP_Response_SystemInfo(0x00,inverterInfo,vaildNum);
+					APP_Response_SystemInfo(ID,0x00,inverterInfo,vaildNum);
 				}	else
 				{	//不匹配
 					SEGGER_RTT_printf(0, "COMMAND_SYSTEMINFO   Not Mapping");
-					APP_Response_SystemInfo(0x01,inverterInfo,0);
+					APP_Response_SystemInfo(ID,0x01,inverterInfo,0);
 				}
 				break;
 					
@@ -150,20 +150,20 @@ void process_WIFIEvent(void)
 				//先对比ECUID是否匹配
 				if(!memcmp(&WIFI_RecvData[11],ECUID12,12))
 				{	//匹配成功进行相应的操作
-					int AddNum = 0;;
+					int AddNum = 0;
 					SEGGER_RTT_printf(0, "COMMAND_SETNETWORK   Mapping");
 							
 					AddNum = (messageLen - 29)/6;
 					//将数据写入EEPROM
 					add_inverter(inverterInfo,AddNum,(char *)&WIFI_RecvData[26]);
-					APP_Response_SetNetwork(0x00);
+					APP_Response_SetNetwork(ID,0x00);
 					init_inverter(inverterInfo);
 					//进行一些绑定操作
 					LED_off();
 					//bind_inverter(inverterInfo);
 				}	else
 				{	//不匹配
-					APP_Response_SetNetwork(0x01);
+					APP_Response_SetNetwork(ID,0x01);
 					SEGGER_RTT_printf(0, "COMMAND_SETNETWORK   Not Mapping");
 				}
 				break;
@@ -177,7 +177,7 @@ void process_WIFIEvent(void)
 					memcpy(New_Signal_Channel,&WIFI_RecvData[26],2);
 					//获取信号强度
 					Signal_Level = ReadRssiValue(1);
-					APP_Response_SetChannel(0x00,New_Signal_Channel,Signal_Level);
+					APP_Response_SetChannel(ID,0x00,New_Signal_Channel,Signal_Level);
 					//将其转换为1个字节
 					newChannel = New_Signal_Channel[0]*10+New_Signal_Channel[1];
 					//changeChannel_inverter(inverterInfo,newChannel);
@@ -188,7 +188,7 @@ void process_WIFIEvent(void)
 					Write_CHANNEL(Signal_Channel);
 				}	else
 				{	//不匹配
-					APP_Response_SetChannel(0x01,NULL,NULL);
+					APP_Response_SetChannel(ID,0x01,NULL,NULL);
 				}
 				break;
 						
@@ -211,17 +211,17 @@ void process_WIFIEvent(void)
 							
 					if(!memcmp(EEPROMPasswd,OldPassword,oldLen))
 					{
-						APP_Response_SetWifiPassword(0x00);
+						APP_Response_SetWifiPassword(ID,0x00);
 						WIFI_ChangePasswd(NewPassword);
 						Write_WIFI_PW(NewPassword,newLen);
 					}else
 					{
-						APP_Response_SetWifiPassword(0x02);
+						APP_Response_SetWifiPassword(ID,0x02);
 					}
 							
 				}	else
 				{	//不匹配
-					APP_Response_SetWifiPassword(0x01);
+					APP_Response_SetWifiPassword(ID,0x01);
 				}					
 				break;
 				
@@ -232,7 +232,7 @@ void process_WIFIEvent(void)
 				{//匹配成功进行相应的操作
 					//获取IO初始状态
 					IO_Init_Status = WIFI_RecvData[23];
-					APP_Response_IOInitStatus(0x00);
+					APP_Response_IOInitStatus(ID,0x00);
 
 					//changeIOinit_inverter(inverterInfo,IO_Init_Status);
 					//保存新IO初始化状态到Flash
@@ -240,7 +240,7 @@ void process_WIFIEvent(void)
 					
 				}else
 				{
-					APP_Response_IOInitStatus(0x01);
+					APP_Response_IOInitStatus(ID,0x01);
 				}
 		}
 	}

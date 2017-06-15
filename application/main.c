@@ -42,6 +42,7 @@ int curSequence = 0;		//心跳轮训机器号
 inverter_info inverterInfo[MAXINVERTERCOUNT] = {'\0'};
 int Data_Len = 0,Command_Id = 0,ResolveFlag = 0,messageLen = 0,messageUsart1Len = 0;
 int UART1_Data_Len = 0,UART1_Command_Id = 0,UART1_ResolveFlag = 0;
+char ID[8] = {'\0'};
 
 /*****************************************************************************/
 /*  Function Implementations                                                 */
@@ -66,11 +67,11 @@ int main(void)
 	while(1)
 	{	
 		//检测WIFI事件
-		WIFI_GetEvent(&messageLen);
+		WIFI_GetEvent(&messageLen,ID);
 		//判断是否有WIFI接收事件
 		if(WIFI_Recv_Event == 1)
 		{
-			process_WIFIEvent();
+			process_WIFIEvent(ID);
 			WIFI_Recv_Event = 0;
 		}
 		//检测USART1事件

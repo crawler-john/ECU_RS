@@ -15,10 +15,12 @@
 
 typedef enum
 { 
-    EN_RECV_ST_GET_HEAD         = 0,		//接收数据头
-    EN_RECV_ST_GET_LEN          = 1,	//接收数据长度   其中数据部分的长度为接收到长度减去12个字节
-    EN_RECV_ST_GET_DATA         = 2,	//接收数据部分数据
-    EN_RECV_ST_GET_END          = 3		//接收END结尾标志
+    EN_RECV_ST_GET_A         		= 0,		//接收数据头
+    EN_RECV_ST_GET_ID          	= 1,	
+    EN_RECV_ST_GET_HEAD         = 2,		//接收数据头
+    EN_RECV_ST_GET_LEN          = 3,	//接收数据长度   其中数据部分的长度为接收到长度减去12个字节
+    EN_RECV_ST_GET_DATA         = 4,	//接收数据部分数据
+    EN_RECV_ST_GET_END          = 5		//接收END结尾标志
 } eRecvSM;// receive state machin
 
 #define USART1_REC_LEN			512
@@ -35,7 +37,7 @@ extern unsigned char USART1_Recv_Event;
 unsigned short packetlen(unsigned char *packet);
 int UART1_SendData(char *data, int num);
 int WIFI_SendData(char *data, int num);
-void WIFI_GetEvent(int *messageLen);
+void WIFI_GetEvent(int *messageLen,char *ID);
 void USART1_GetEvent(int *messageLen);
 void uart2_init(u32 bound);
 void uart1_init(u32 bound);
