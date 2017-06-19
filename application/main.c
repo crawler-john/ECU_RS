@@ -42,7 +42,7 @@ int curSequence = 0;		//ÐÄÌøÂÖÑµ»úÆ÷ºÅ
 inverter_info inverterInfo[MAXINVERTERCOUNT] = {'\0'};
 int Data_Len = 0,Command_Id = 0,ResolveFlag = 0,messageLen = 0,messageUsart1Len = 0;
 int UART1_Data_Len = 0,UART1_Command_Id = 0,UART1_ResolveFlag = 0;
-char ID[8] = {'\0'};
+unsigned char ID[9] = {'\0'};
 
 /*****************************************************************************/
 /*  Function Implementations                                                 */

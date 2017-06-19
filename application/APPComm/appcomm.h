@@ -20,15 +20,15 @@ typedef enum
 //解析收到的数据
 int Resolve_RecvData(char *RecvData,int* Data_Len,int* Command_Id);
 //01 命令回应
-void APP_Response_BaseInfo(char *ID,char *ECU_NO,char *TYPE,char SIGNAL_LEVEL,char *SIGNAL_CHANNEL,int Length,char * Version);
+void APP_Response_BaseInfo(unsigned char *ID,char *ECU_NO,char *TYPE,char SIGNAL_LEVEL,char *SIGNAL_CHANNEL,int Length,char * Version);
 //02 命令回应
-void APP_Response_SystemInfo(char *ID,unsigned char mapflag,inverter_info *inverter,int vaildNum);
+void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_info *inverter,int vaildNum);
 //03 命令回应
-void APP_Response_SetNetwork(char *ID,unsigned char result);
+void APP_Response_SetNetwork(unsigned char *ID,unsigned char result);
 //04 命令回应
-void APP_Response_SetChannel(char *ID,unsigned char mapflag,char *SIGNAL_CHANNEL,char SIGNAL_LEVEL);
+void APP_Response_SetChannel(unsigned char *ID,unsigned char mapflag,char *SIGNAL_CHANNEL,char SIGNAL_LEVEL);
 //05 命令回应
-void APP_Response_SetWifiPassword(char *ID,unsigned char result);
+void APP_Response_SetWifiPassword(unsigned char *ID,unsigned char result);
 //06 命令回应
-void APP_Response_IOInitStatus(char *ID,unsigned char result);
+void APP_Response_IOInitStatus(unsigned char *ID,unsigned char result);
 #endif /*__APPCOMM_H__*/

@@ -116,7 +116,7 @@ void process_HeartBeatEvent(void)
 }
 
 //WIFI事件处理
-void process_WIFIEvent(char * ID)
+void process_WIFIEvent(unsigned char * ID)
 {
 	ResolveFlag =  Resolve_RecvData((char *)WIFI_RecvData,&Data_Len,&Command_Id);
 	if(ResolveFlag == 0)
@@ -151,9 +151,10 @@ void process_WIFIEvent(char * ID)
 				if(!memcmp(&WIFI_RecvData[11],ECUID12,12))
 				{	//匹配成功进行相应的操作
 					int AddNum = 0;
-					SEGGER_RTT_printf(0, "COMMAND_SETNETWORK   Mapping");
+					
 							
 					AddNum = (messageLen - 29)/6;
+					SEGGER_RTT_printf(0, "COMMAND_SETNETWORK   Mapping   %d\n",AddNum);
 					//将数据写入EEPROM
 					add_inverter(inverterInfo,AddNum,(char *)&WIFI_RecvData[26]);
 					APP_Response_SetNetwork(ID,0x00);

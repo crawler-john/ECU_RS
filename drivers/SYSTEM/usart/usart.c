@@ -394,17 +394,19 @@ void USART2_IRQHandler(void)                	//串口1中断服务程序
 	if(USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)  //接收中断(接收到的数据必须是0x0d 0x0a结尾)
 	{
 		USART_RX_BUF[Cur] = USART_ReceiveData(USART2);//(USART2->DR);	//读取接收到的数据
-		//SEGGER_RTT_printf(0, "%x %c\n",USART_RX_BUF[Cur],USART_RX_BUF[Cur]);
+		//SEGGER_RTT_printf(0, "[%d] : %x %c\n",Cur,USART_RX_BUF[Cur],USART_RX_BUF[Cur]);
 		Cur +=1;
 		if(Cur >=USART_REC_LEN)
 		{
-			SEGGER_RTT_printf(0, "%d \n",Cur);
+			//SEGGER_RTT_printf(0, "%d \n",Cur);
 			Cur = 0;
 		}
 	}
 } 
 
-void WIFI_GetEvent(int *messageLen,char *ID)
+
+
+void WIFI_GetEvent(int *messageLen,unsigned char *ID)
 {
 	  pos = 0;
 		
@@ -422,18 +424,18 @@ void WIFI_GetEvent(int *messageLen,char *ID)
 							Cur = 0;
 							pos = 0;
 							eStateMachine = EN_RECV_ST_GET_A;
+							break;
 						}else
 						{
 							//SEGGER_RTT_printf(0, "a\n");
 							eStateMachine = EN_RECV_ST_GET_ID;
-							TIM3_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+							TIM3_Int_Init(299,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
 							break;
 						}
 				}
 				pos++;
 			}
-		}
-	
+		}		
 	
 		//接收ID
 		if(eStateMachine == EN_RECV_ST_GET_ID)
@@ -441,53 +443,54 @@ void WIFI_GetEvent(int *messageLen,char *ID)
       while(pos < Cur)
       {
 				TIM3_Int_Deinit();
-				mvsize = Cur - pos;		//当前第几个字节
-				if(2 == mvsize)
+
+				if(2 == pos)
 				{
 					ID[0] = USART_RX_BUF[1];
 				}
 				
-				if(3 == mvsize)
+				if(3 == pos)
 				{
 					ID[1] = USART_RX_BUF[2];
 				}	
 				
-				if(4 == mvsize)
+				if(4 == pos)
 				{
 					ID[2] = USART_RX_BUF[3];
 				}
 				
-				if(5 == mvsize) 
+				if(5 == pos) 
 				{
 					ID[3] = USART_RX_BUF[4];
 				}
 				
-				if(6 == mvsize)
+				if(6 == pos)
 				{
 					ID[4] = USART_RX_BUF[5];
 				}
 				
-				if(7 == mvsize)
+				if(7 == pos)
 				{
 					ID[5] = USART_RX_BUF[6];
 				}
 				
-				if(8 == mvsize)   
+				if(8 == pos)   
 				{
 					ID[6] = USART_RX_BUF[7];
 				}
 				
-				if(9 == mvsize)   //接收版本号完毕
+				if(9 == pos)   //接收版本号完毕
 				{
 					//SEGGER_RTT_printf(0, "ID\n");
 					ID[7] = USART_RX_BUF[8];
 					eStateMachine = EN_RECV_ST_GET_HEAD;
+					//SEGGER_RTT_printf(0, "ID111 %x %x %x %x %x %x %x %x\n",ID[0],ID[1],ID[2],ID[3],ID[4],ID[5],ID[6],ID[7]);
 
-					TIM3_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+					TIM3_Int_Init(299,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
 					break;
 				}
 				
-				TIM3_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+				TIM3_Int_Init(299,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
 				
 				pos++;
 			}
@@ -510,6 +513,7 @@ void WIFI_GetEvent(int *messageLen,char *ID)
 							Cur = 0;
 							pos = 0;
 							eStateMachine = EN_RECV_ST_GET_A;
+							break;
 						}
 				}
 				
@@ -520,6 +524,7 @@ void WIFI_GetEvent(int *messageLen,char *ID)
 							Cur = 0;
 							pos = 0;
 							eStateMachine = EN_RECV_ST_GET_A;
+							break;
 						}
 				}	
 				
@@ -530,6 +535,7 @@ void WIFI_GetEvent(int *messageLen,char *ID)
 							Cur = 0;
 							pos = 0;
 							eStateMachine = EN_RECV_ST_GET_A;
+							break;
 						}
 				}
 				
@@ -538,11 +544,11 @@ void WIFI_GetEvent(int *messageLen,char *ID)
 					//SEGGER_RTT_printf(0, "APS11\n");
 					eStateMachine = EN_RECV_ST_GET_LEN;
 
-					TIM3_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+					TIM3_Int_Init(299,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
 					break;
 				}
 				
-				TIM3_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+				TIM3_Int_Init(299,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
 				
 				pos++;
 			}
@@ -551,49 +557,33 @@ void WIFI_GetEvent(int *messageLen,char *ID)
 		//receive data length
 		if(eStateMachine == EN_RECV_ST_GET_LEN)
 		{
-			////SEGGER_RTT_printf(0, "EN_RECV_ST_GET_LEN\n");
+			//SEGGER_RTT_printf(0, "EN_RECV_ST_GET_LEN\n");
 			while(pos < Cur)
       {
 				TIM3_Int_Deinit();
+				//判断是否有a出现  如果出现了判断后面8个字节
 				mvsize = Cur - pos;		//当前第几个字节
 				if(18 == mvsize)   //接收数据长度结束
 				{
 					PackLen = (packetlen(&USART_RX_BUF[14])+9);
-					//SEGGER_RTT_printf(0, "LENGTH : %d\n",PackLen);
+					//SEGGER_RTT_printf(0, "LENGTH11111 : %d\n",PackLen);
 					//计算长度
 					eStateMachine = EN_RECV_ST_GET_DATA;
 
-					TIM3_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+					TIM3_Int_Init(299,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
 					break;
 				}
-				TIM3_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+				TIM3_Int_Init(299,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
 				pos++;
 			}
 		}
 		
-		//Continue to receive data
-		if(eStateMachine == EN_RECV_ST_GET_DATA)
-		{
-			//SEGGER_RTT_printf(0, "EN_RECV_ST_GET_DATA\n");
-			while(pos < Cur)
-      {
-				TIM3_Int_Deinit();
-				mvsize = Cur - pos;		//当前第几个字节
-				if((PackLen - 3) == mvsize)   //接收数据长度结束
-				{
-					eStateMachine = EN_RECV_ST_GET_END;
 
-					TIM3_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
-					break;
-				}
-				TIM3_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
-				pos++;
-			}
-		}
 		
 		//receive END
 		if(eStateMachine == EN_RECV_ST_GET_END)
 		{
+			pos = 0;
 			//SEGGER_RTT_printf(0, "EN_RECV_ST_GET_END\n");
 			while(pos < Cur)
       {
@@ -606,6 +596,7 @@ void WIFI_GetEvent(int *messageLen,char *ID)
 							Cur = 0;
 							pos = 0;
 							eStateMachine = EN_RECV_ST_GET_A;
+							break;
 						}
 				}
 				
@@ -616,6 +607,7 @@ void WIFI_GetEvent(int *messageLen,char *ID)
 							Cur = 0;
 							pos = 0;
 							eStateMachine = EN_RECV_ST_GET_A;
+							break;
 						}
 				}	
 				
@@ -626,32 +618,57 @@ void WIFI_GetEvent(int *messageLen,char *ID)
 							Cur = 0;
 							pos = 0;
 							eStateMachine = EN_RECV_ST_GET_A;
+							break;
 						}
 						//SEGGER_RTT_printf(0, "EN_RECV_ST_GET_END OVER\n");
+						
+						//SEGGER_RTT_printf(0, "ID %x %x %x %x %x %x %x %x\n",ID[0],ID[1],ID[2],ID[3],ID[4],ID[5],ID[6],ID[7]);
 						
 						//报文接收完毕
 						//进行完毕的相应操作
 						//将采集成功的数据复制到成功数组
 						memset(WIFI_RecvData,0x00,USART_REC_LEN);
 						memcpy(WIFI_RecvData,&USART_RX_BUF[9],(PackLen-9));
+						//解析数据，去掉多包问题
 						*messageLen = PackLen-9;
-						WIFI_RecvData[PackLen-9] = '\0';
+						
+						WIFI_RecvData[*messageLen] = '\0';
 						WIFI_Recv_Event = 1;
 						//SEGGER_RTT_printf(0, "WIFI_RecvData :%s\n",WIFI_RecvData);
 						eStateMachine = EN_RECV_ST_GET_A;
 						Cur = 0;
-						pos = 0;
-						
-						
-						TIM3_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+						pos = 0;		
+						TIM3_Int_Init(299,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
 						break;
 				}
 				
-				TIM3_Int_Init(149,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+				TIM3_Int_Init(299,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
 				
 				pos++;
 			}
 		}
+		
+
+		//Continue to receive data
+		if(eStateMachine == EN_RECV_ST_GET_DATA)
+		{
+			pos = 0;
+			while(pos < Cur)
+      {
+				TIM3_Int_Deinit();
+
+				if((PackLen - 3) == pos)   //接收数据长度结束
+				{
+					eStateMachine = EN_RECV_ST_GET_END;
+
+					TIM3_Int_Init(299,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+					break;
+				}
+				TIM3_Int_Init(299,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+				pos++;
+			}
+		}		
+
 }
 
 void clear_WIFI(void)

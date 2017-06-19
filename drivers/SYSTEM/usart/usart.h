@@ -37,7 +37,7 @@ extern unsigned char USART1_Recv_Event;
 unsigned short packetlen(unsigned char *packet);
 int UART1_SendData(char *data, int num);
 int WIFI_SendData(char *data, int num);
-void WIFI_GetEvent(int *messageLen,char *ID);
+void WIFI_GetEvent(int *messageLen,unsigned char *ID);
 void USART1_GetEvent(int *messageLen);
 void uart2_init(u32 bound);
 void uart1_init(u32 bound);

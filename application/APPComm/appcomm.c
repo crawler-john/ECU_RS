@@ -19,7 +19,7 @@ int Resolve_RecvData(char *RecvData,int* Data_Len,int* Command_Id)
 }
 
 //ECU-RS获取基本信息回应
-void APP_Response_BaseInfo(char *ID,char *ECU_NO,char *TYPE,char SIGNAL_LEVEL,char *SIGNAL_CHANNEL,int Length,char * Version)
+void APP_Response_BaseInfo(unsigned char *ID,char *ECU_NO,char *TYPE,char SIGNAL_LEVEL,char *SIGNAL_CHANNEL,int Length,char * Version)
 {
 
 	memset(SendData,'\0',MAXINVERTERCOUNT*INVERTERLENGTH + 16 + 9);	
@@ -37,7 +37,7 @@ void APP_Response_BaseInfo(char *ID,char *ECU_NO,char *TYPE,char SIGNAL_LEVEL,ch
 }
 
 //ECU-RS系统信息回应   mapflag   0表示匹配成功  1 表示匹配不成功
-void APP_Response_SystemInfo(char *ID,unsigned char mapflag,inverter_info *inverter,int vaildNum)
+void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_info *inverter,int vaildNum)
 {
 	
 	inverter_info *curinverter = inverter;
@@ -113,7 +113,7 @@ void APP_Response_SystemInfo(char *ID,unsigned char mapflag,inverter_info *inver
 			
 		}
 		
-#if 0
+#if 1
 	for(i=0;i<length+9;i++)
 	{
 		SEGGER_RTT_printf(0, "%02x ",SendData[i]);
@@ -128,7 +128,7 @@ void APP_Response_SystemInfo(char *ID,unsigned char mapflag,inverter_info *inver
 }
 
 //ECU-RS设置组网回应
-void APP_Response_SetNetwork(char *ID,unsigned char result)
+void APP_Response_SetNetwork(unsigned char *ID,unsigned char result)
 {
 	//char SendData[20] = {'\0'};
 	memset(SendData,'\0',MAXINVERTERCOUNT*INVERTERLENGTH + 16 + 9);	
@@ -145,7 +145,7 @@ void APP_Response_SetNetwork(char *ID,unsigned char result)
 }
 
 //ECU-RS设置信道回应
-void APP_Response_SetChannel(char *ID,unsigned char mapflag,char *SIGNAL_CHANNEL,char SIGNAL_LEVEL)
+void APP_Response_SetChannel(unsigned char *ID,unsigned char mapflag,char *SIGNAL_CHANNEL,char SIGNAL_LEVEL)
 {
 	//char SendData[22] = {'\0'};
 	memset(SendData,'\0',MAXINVERTERCOUNT*INVERTERLENGTH + 16 + 9);
@@ -176,7 +176,7 @@ void APP_Response_SetChannel(char *ID,unsigned char mapflag,char *SIGNAL_CHANNEL
 }
 
 //ECU-RS设置WIFI密码
-void APP_Response_SetWifiPassword(char *ID,unsigned char result)
+void APP_Response_SetWifiPassword(unsigned char *ID,unsigned char result)
 {
 	//char SendData[20] = {'\0'};
 	memset(SendData,'\0',MAXINVERTERCOUNT*INVERTERLENGTH + 16 + 9);
@@ -193,7 +193,7 @@ void APP_Response_SetWifiPassword(char *ID,unsigned char result)
 }
 
 
-void APP_Response_IOInitStatus(char *ID,unsigned char result)
+void APP_Response_IOInitStatus(unsigned char *ID,unsigned char result)
 {
 	//char SendData[20] = {'\0'};
 	memset(SendData,'\0',MAXINVERTERCOUNT*INVERTERLENGTH + 16 + 9);

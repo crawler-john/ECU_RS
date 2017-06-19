@@ -151,6 +151,14 @@ int RFM300_Heart_Beat(char *ECUID,char *UID,char *mos_Status,char *IO_InitStatus
 		{
 
 			*mos_Status = Recvdata[16];
+			if(*mos_Status == 0)
+			{
+				*mos_Status = 1;
+			}else
+			{
+				*mos_Status =0;
+			}
+			
 			*IO_InitStatus = Recvdata[17];
 			*offNum = Recvdata[18]*256+Recvdata[19];
 			*heart_rate = Recvdata[20]*256 +Recvdata[21];
@@ -235,6 +243,13 @@ int RFM300_IO_Init(char *ECUID,char *UID,char IO_Status,char *mos_Status,char *I
 			(Senddata[15]==Recvdata[15]))
 		{
 			*mos_Status = Recvdata[16];
+			if(*mos_Status == 0)
+			{
+				*mos_Status = 1;
+			}else
+			{
+				*mos_Status =0;
+			}
 			*IO_InitStatus = Recvdata[17];
 			*offNum = Recvdata[18]*256+Recvdata[19];
 			*heart_rate = Recvdata[20]*256 +Recvdata[21];
