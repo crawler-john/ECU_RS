@@ -97,11 +97,17 @@ void process_HeartBeatEvent(void)
 					if(Write_UID_Bind(0x01,(curSequence+1)) == 0)
 					{
 						inverterInfo[curSequence].bind_status = 1;
+						inverterInfo[curSequence].heart_Failed_times = 0;
 					}
 					
 				}
 			}
-			
+			inverterInfo[curSequence].heart_Failed_times++;
+			if(inverterInfo[curSequence].heart_Failed_times >= 3)
+				inverterInfo[curSequence].mos_status = 0;
+		}else
+		{
+			inverterInfo[curSequence].heart_Failed_times = 0;
 		}
 		//查看是否需要改变信道
 		

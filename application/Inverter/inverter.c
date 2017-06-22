@@ -34,6 +34,7 @@ int init_inverter(inverter_info *inverter)
 		curinverter->heart_rate = 0;
 		curinverter->off_times = 0;
 		curinverter->mos_status = 0;
+		curinverter->heart_Failed_times = 0;
 	}
 	
 	//¡ä¨®EEPROM?D?¨¢¨¨???¡À??¡ÂD??¡é
