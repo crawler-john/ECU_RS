@@ -414,5 +414,5 @@ void CMT2300_init(void);
 byte SendMessage(byte *p,byte len);
 byte GetMessage(byte *p);
 
-
+char setChannel(char channel);
 #endif 

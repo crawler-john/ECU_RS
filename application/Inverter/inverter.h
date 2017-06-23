@@ -5,7 +5,7 @@ extern char ECUID12[13];
 extern char ECUID6[7];
 extern char Signal_Level;
 extern char Signal_Channel[3];
-extern char New_Signal_Channel[3];
+extern char Channel_char;
 extern char IO_Init_Status;			//IO初始状态
 extern char ver;						//优化器版本号
 extern int vaildNum;				//当前有效台数

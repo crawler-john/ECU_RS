@@ -92,6 +92,7 @@ void process_HeartBeatEvent(void)
 			if(inverterInfo[curSequence].bind_status != 1)
 			{
 				ret = RFM300_Bind_Uid(ECUID6,(char *)inverterInfo[curSequence].uid,0,0);
+				//SEGGER_RTT_printf(0, "RFM300_Bind_Uid %02x%02x%02x%02x%02x%02x\n",inverterInfo[curSequence].uid[0],inverterInfo[curSequence].uid[1],inverterInfo[curSequence].uid[2],inverterInfo[curSequence].uid[3],inverterInfo[curSequence].uid[4],inverterInfo[curSequence].uid[5]);
 				if(ret == 1)
 				{
 					if(Write_UID_Bind(0x01,(curSequence+1)) == 0)
@@ -108,9 +109,37 @@ void process_HeartBeatEvent(void)
 		}else
 		{
 			inverterInfo[curSequence].heart_Failed_times = 0;
+			//心跳成功  判断当前系统信道和当前RSD2最后一次通信的信道是否不同   不同则更改之
+			if(Channel_char != inverterInfo[curSequence].channel)
+			{
+					if(Write_UID_Channel(Channel_char,(curSequence+1)) == 0)
+					{
+						SEGGER_RTT_printf(0, "change Channel %02x%02x%02x%02x%02x%02x  Channel_char:%d   inverterInfo[curSequence].channel:%d\n",inverterInfo[curSequence].uid[0],inverterInfo[curSequence].uid[1],inverterInfo[curSequence].uid[2],inverterInfo[curSequence].uid[3],inverterInfo[curSequence].uid[4],inverterInfo[curSequence].uid[5],Channel_char,inverterInfo[curSequence].channel);
+
+						inverterInfo[curSequence].channel = Channel_char;
+					}
+			}
 		}
 		//查看是否需要改变信道
-		
+		if(Channel_char != inverterInfo[curSequence].channel)
+		{
+			//先变更到RSD2的信道 
+			setChannel(inverterInfo[curSequence].channel);
+			
+			//发送更改信道报文
+			ret = RFM300_Bind_Uid(ECUID6,(char *)inverterInfo[curSequence].uid,Channel_char,0);
+			if(ret == 1)	//设置信道成功
+			{
+				if(Write_UID_Channel(Channel_char,(curSequence+1)) == 0)
+				{
+					SEGGER_RTT_printf(0, "change Channel %02x%02x%02x%02x%02x%02x  Channel_char:%d   inverterInfo[curSequence].channel:%d\n",inverterInfo[curSequence].uid[0],inverterInfo[curSequence].uid[1],inverterInfo[curSequence].uid[2],inverterInfo[curSequence].uid[3],inverterInfo[curSequence].uid[4],inverterInfo[curSequence].uid[5],Channel_char,inverterInfo[curSequence].channel);
+					inverterInfo[curSequence].channel = Channel_char;
+				}
+			}
+			
+			//更改到系统信道
+			setChannel(Channel_char);
+		}
 		
 		curSequence++;
 		if(curSequence >= vaildNum)		//当轮训的序号大于最后一台时，更换到第0台
@@ -134,7 +163,7 @@ void process_WIFIEvent(unsigned char * ID)
 				//获取基本信息
 				//获取信号强度
 				Signal_Level = ReadRssiValue(1);
-				APP_Response_BaseInfo(ID,ECUID12,VERSION_ECU_RS,Signal_Level,"00",5,SOFEWARE_VERSION);
+				APP_Response_BaseInfo(ID,ECUID12,VERSION_ECU_RS,Signal_Level,Signal_Channel,5,SOFEWARE_VERSION);
 				break;
 					
 			case COMMAND_SYSTEMINFO:			//获取系统信息			APS11002602406000000009END
@@ -179,20 +208,18 @@ void process_WIFIEvent(unsigned char * ID)
 				SEGGER_RTT_printf(0, "WIFI_Recv_Event%d %s\n",COMMAND_SETCHANNEL,WIFI_RecvData);
 				if(!memcmp(&WIFI_RecvData[11],ECUID12,12))
 				{	//匹配成功进行相应的操作
-					char newChannel = 0;
 					//获取新的信道
-					memcpy(New_Signal_Channel,&WIFI_RecvData[26],2);
+					memcpy(Signal_Channel,&WIFI_RecvData[26],2);
+					Write_CHANNEL(Signal_Channel);		//写入信道
 					//获取信号强度
 					Signal_Level = ReadRssiValue(1);
-					APP_Response_SetChannel(ID,0x00,New_Signal_Channel,Signal_Level);
+					APP_Response_SetChannel(ID,0x00,Signal_Channel,Signal_Level);
 					//将其转换为1个字节
-					newChannel = New_Signal_Channel[0]*10+New_Signal_Channel[1];
-					//changeChannel_inverter(inverterInfo,newChannel);
+					Channel_char = (Signal_Channel[0]-'0')*10+(Signal_Channel[1]-'0');
 					//改变自己的信道
-							
-					//保存新信道到Flash
-					memcpy(Signal_Channel,New_Signal_Channel,3);
-					Write_CHANNEL(Signal_Channel);
+					setChannel(Channel_char);
+					SEGGER_RTT_printf(0, "COMMAND_SETCHANNEL  Signal_Channel:%s Channel_char%d\n",Signal_Channel,Channel_char);
+					
 				}	else
 				{	//不匹配
 					APP_Response_SetChannel(ID,0x01,NULL,NULL);
@@ -260,6 +287,7 @@ void process_UART1Event(void)
 	char USART1_ECUID12[13] = {'\0'};
 	char USART1_ECUID6[7] = {'\0'};
 	char USART1_UID_NUM[2] = {0x00,0x00};
+	char Channel[2] = "01";
 	char ret =0;
 	char testItem = 0;
 	int AddNum = 0;
@@ -282,6 +310,7 @@ void process_UART1Event(void)
 					ret = Write_ECUID(USART1_ECUID6);													  		//ECU ID
 					//设置WIFI密码
 					if(ret != 0) 	USART1_Response_SET_ID(ret);
+					Write_CHANNEL(Channel);
 					
 					//设置WIFI密码
 					USART1_ECUID12[12] = '\0';

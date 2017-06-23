@@ -13,8 +13,9 @@ int init_ecu(void)
 	transformECUID(ECUID6,ECUID12);		//转换ECU ID
 	
 	Read_CHANNEL(Signal_Channel);
-	
-	SEGGER_RTT_printf(0, "ECU ID :%s        Signal_Channel:   %s    \n",ECUID12,Signal_Channel);
+	Channel_char = (Signal_Channel[0] -'0')*10 +(Signal_Channel[1] -'0');
+	setChannel(Channel_char);
+	SEGGER_RTT_printf(0, "ECU ID :%s        Signal_Channel:   %s    %d\n",ECUID12,Signal_Channel,Channel_char);
 	return 0;
 }
 
@@ -59,9 +60,10 @@ int init_inverter(inverter_info *inverter)
 			curinverter->bind_status = 0; //0表示绑定失败
 		}
 
+		Read_UID_Channel((char *)&curinverter->channel,(i+1));
 		
 		
-		SEGGER_RTT_printf(0, "uid%d: %02x%02x%02x%02x%02x%02x   bind:%d\n",(i+1),curinverter->uid[0],curinverter->uid[1],curinverter->uid[2],curinverter->uid[3],curinverter->uid[4],curinverter->uid[5],curinverter->bind_status);
+		SEGGER_RTT_printf(0, "uid%d: %02x%02x%02x%02x%02x%02x   bind:%d channel:%d\n",(i+1),curinverter->uid[0],curinverter->uid[1],curinverter->uid[2],curinverter->uid[3],curinverter->uid[4],curinverter->uid[5],curinverter->bind_status,curinverter->channel);
 	}
 	return 0;
 }
@@ -86,6 +88,7 @@ int add_inverter(inverter_info *inverter,int num,char *uidstring)
 
 		Write_UID(&uidstring[0+(i*6)],(i+1));
 		Write_UID_Bind(0x00,(i+1));
+		Write_UID_Channel(0x01,(i+1));
 		//SEGGER_RTT_printf(0, "add_inverter uid%d: %02x%02x%02x%02x%02x%02x  \n",(i+1),uidstring[0+(i*6)],uidstring[1+(i*6)],uidstring[2+(i*6)],uidstring[3+(i*6)],uidstring[4+(i*6)],uidstring[5+(i*6)]);		
 	}
 	return 0;
