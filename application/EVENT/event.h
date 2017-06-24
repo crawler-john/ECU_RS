@@ -6,6 +6,7 @@
 extern char ECUID12[13];
 extern char ECUID6[7];
 extern char Signal_Level;
+extern unsigned char ID[9];
 extern char Signal_Channel[3];
 extern char Channel_char;
 extern char IO_Init_Status;			//IO³õÊ¼×´Ì¬

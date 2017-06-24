@@ -84,14 +84,42 @@ void process_HeartBeatEvent(void)
 	if(	vaildNum >0	)
 	{
 		//SEGGER_RTT_printf(0, "RFM300_Heart_Beat %02x%02x%02x%02x%02x%02x\n",inverterInfo[curSequence].uid[0],inverterInfo[curSequence].uid[1],inverterInfo[curSequence].uid[2],inverterInfo[curSequence].uid[3],inverterInfo[curSequence].uid[4],inverterInfo[curSequence].uid[5]);
-
+		
+		//检测WIFI事件
+		WIFI_GetEvent(&messageLen,ID);
+		//判断是否有WIFI接收事件
+		if(WIFI_Recv_Event == 1)
+		{
+			process_WIFIEvent(ID);
+			WIFI_Recv_Event = 0;
+		}
+		
 		ret = RFM300_Heart_Beat(ECUID6,(char *)inverterInfo[curSequence].uid,(char *)&inverterInfo[curSequence].mos_status,&IO_Init_Status,&inverterInfo[curSequence].heart_rate,&inverterInfo[curSequence].off_times,&ver);
-		if(ret == 0)
+	
+		//检测WIFI事件
+		WIFI_GetEvent(&messageLen,ID);
+		//判断是否有WIFI接收事件
+		if(WIFI_Recv_Event == 1)
+		{
+			process_WIFIEvent(ID);
+			WIFI_Recv_Event = 0;
+		}
+		
+		if(ret == 0)	//发送心跳包失败
 		{
 			//查看绑定标志位，如果绑定未成功，尝试绑定。
 			if(inverterInfo[curSequence].bind_status != 1)
 			{
 				ret = RFM300_Bind_Uid(ECUID6,(char *)inverterInfo[curSequence].uid,0,0);
+				
+				//检测WIFI事件
+				WIFI_GetEvent(&messageLen,ID);
+				//判断是否有WIFI接收事件
+				if(WIFI_Recv_Event == 1)
+				{
+					process_WIFIEvent(ID);
+					WIFI_Recv_Event = 0;
+				}
 				//SEGGER_RTT_printf(0, "RFM300_Bind_Uid %02x%02x%02x%02x%02x%02x\n",inverterInfo[curSequence].uid[0],inverterInfo[curSequence].uid[1],inverterInfo[curSequence].uid[2],inverterInfo[curSequence].uid[3],inverterInfo[curSequence].uid[4],inverterInfo[curSequence].uid[5]);
 				if(ret == 1)
 				{
@@ -106,7 +134,7 @@ void process_HeartBeatEvent(void)
 			inverterInfo[curSequence].heart_Failed_times++;
 			if(inverterInfo[curSequence].heart_Failed_times >= 3)
 				inverterInfo[curSequence].mos_status = 0;
-		}else
+		}else	//发送心跳包成功
 		{
 			inverterInfo[curSequence].heart_Failed_times = 0;
 			//心跳成功  判断当前系统信道和当前RSD2最后一次通信的信道是否不同   不同则更改之
@@ -120,25 +148,39 @@ void process_HeartBeatEvent(void)
 					}
 			}
 		}
-		//查看是否需要改变信道
-		if(Channel_char != inverterInfo[curSequence].channel)
+
+		//检测WIFI事件
+		WIFI_GetEvent(&messageLen,ID);
+		//判断是否有WIFI接收事件
+		if(WIFI_Recv_Event == 1)
 		{
-			//先变更到RSD2的信道 
-			setChannel(inverterInfo[curSequence].channel);
-			
-			//发送更改信道报文
-			ret = RFM300_Bind_Uid(ECUID6,(char *)inverterInfo[curSequence].uid,Channel_char,0);
-			if(ret == 1)	//设置信道成功
+			process_WIFIEvent(ID);
+			WIFI_Recv_Event = 0;
+		}
+		
+		//在绑定成功的情况下才能改信道
+		//if(inverterInfo[curSequence].bind_status == 1)
+		{
+			//查看是否需要改变信道
+			if(Channel_char != inverterInfo[curSequence].channel)
 			{
-				if(Write_UID_Channel(Channel_char,(curSequence+1)) == 0)
+				//先变更到RSD2的信道 
+				setChannel(inverterInfo[curSequence].channel);
+				
+				//发送更改信道报文
+				ret = RFM300_Bind_Uid(ECUID6,(char *)inverterInfo[curSequence].uid,Channel_char,0);
+				if(ret == 1)	//设置信道成功
 				{
-					SEGGER_RTT_printf(0, "change Channel %02x%02x%02x%02x%02x%02x  Channel_char:%d   inverterInfo[curSequence].channel:%d\n",inverterInfo[curSequence].uid[0],inverterInfo[curSequence].uid[1],inverterInfo[curSequence].uid[2],inverterInfo[curSequence].uid[3],inverterInfo[curSequence].uid[4],inverterInfo[curSequence].uid[5],Channel_char,inverterInfo[curSequence].channel);
-					inverterInfo[curSequence].channel = Channel_char;
+					if(Write_UID_Channel(Channel_char,(curSequence+1)) == 0)
+					{
+						SEGGER_RTT_printf(0, "change Channel %02x%02x%02x%02x%02x%02x  Channel_char:%d   inverterInfo[curSequence].channel:%d\n",inverterInfo[curSequence].uid[0],inverterInfo[curSequence].uid[1],inverterInfo[curSequence].uid[2],inverterInfo[curSequence].uid[3],inverterInfo[curSequence].uid[4],inverterInfo[curSequence].uid[5],Channel_char,inverterInfo[curSequence].channel);
+						inverterInfo[curSequence].channel = Channel_char;
+					}
 				}
-			}
-			
-			//更改到系统信道
-			setChannel(Channel_char);
+				
+				//更改到系统信道
+				setChannel(Channel_char);
+			}		
 		}
 		
 		curSequence++;

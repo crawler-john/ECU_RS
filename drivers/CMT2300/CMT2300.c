@@ -685,7 +685,7 @@ byte GetMessage(byte *p)
 	}
 	if(RFM300H_SW==1)
 	{	
-		for(index =0 ;index<500;index++)
+		for(index =0 ;index<400;index++)
 		{
 			if(GPIO3==1)
 			{
