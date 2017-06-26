@@ -10,6 +10,15 @@
 #include "delay.h"
 #include "led.h"
 
+
+#define PERIOD_NUM			10
+
+
+char IO_Init_Status_inverter = 0;	//逆变器IO初始状态
+char period_sequence = 0;
+unsigned short pre_heart_rate;
+
+
 typedef enum
 { 
     HARDTEST_TEST_ALL    	= 0,		//接收数据头
@@ -94,7 +103,9 @@ void process_HeartBeatEvent(void)
 			WIFI_Recv_Event = 0;
 		}
 		
-		ret = RFM300_Heart_Beat(ECUID6,(char *)inverterInfo[curSequence].uid,(char *)&inverterInfo[curSequence].mos_status,&IO_Init_Status,&inverterInfo[curSequence].heart_rate,&inverterInfo[curSequence].off_times,&ver);
+		//先保存上一轮的心跳
+		pre_heart_rate = inverterInfo[curSequence].heart_rate;
+		ret = RFM300_Heart_Beat(ECUID6,(char *)inverterInfo[curSequence].uid,(char *)&inverterInfo[curSequence].mos_status,&IO_Init_Status_inverter,&inverterInfo[curSequence].heart_rate,&inverterInfo[curSequence].off_times,&ver);
 	
 		//检测WIFI事件
 		WIFI_GetEvent(&messageLen,ID);
@@ -147,6 +158,38 @@ void process_HeartBeatEvent(void)
 						inverterInfo[curSequence].channel = Channel_char;
 					}
 			}
+
+			//心跳成功 判断是否需要关闭或者打开心跳功能
+			if(IO_Init_Status_inverter == 0)	//心跳功能打开
+			{
+				if(IO_Init_Status == 0)		//需要关闭心跳功能
+				{
+					RFM300_IO_Init(ECUID6,(char *)inverterInfo[curSequence].uid,0x02,(char *)&inverterInfo[curSequence].mos_status,&IO_Init_Status_inverter,&inverterInfo[curSequence].heart_rate,&inverterInfo[curSequence].off_times,&ver);
+				}
+			}else					//心跳功能关闭
+			{
+				if(IO_Init_Status == 1)		//需要打开心跳功能
+				{
+					RFM300_IO_Init(ECUID6,(char *)inverterInfo[curSequence].uid,0x01,(char *)&inverterInfo[curSequence].mos_status,&IO_Init_Status_inverter,&inverterInfo[curSequence].heart_rate,&inverterInfo[curSequence].off_times,&ver);
+				}
+			}
+
+			//检测WIFI事件
+			WIFI_GetEvent(&messageLen,ID);
+			//判断是否有WIFI接收事件
+			if(WIFI_Recv_Event == 1)
+			{
+				process_WIFIEvent(ID);
+				WIFI_Recv_Event = 0;
+			}
+
+			//如果当前一轮心跳小于上一轮心跳,表示重启
+			if(inverterInfo[curSequence].heart_rate < pre_heart_rate)
+			{
+				//当前一轮重启次数+1
+				inverterInfo[curSequence].restartNum.cur_restart_num++;
+			}
+			
 		}
 
 		//检测WIFI事件
@@ -187,6 +230,18 @@ void process_HeartBeatEvent(void)
 		if(curSequence >= vaildNum)		//当轮训的序号大于最后一台时，更换到第0台
 		{
 			curSequence = 0;
+			period_sequence++;
+
+			//轮训10次结束
+			if(period_sequence == PERIOD_NUM)
+			{
+				for(curSequence = 0;curSequence < vaildNum;curSequence++)
+				{
+					inverterInfo[curSequence].restartNum.pre_restart_num = inverterInfo[curSequence].restartNum.cur_restart_num;
+					inverterInfo[curSequence].restartNum.cur_restart_num = 0;
+				}
+				curSequence = 0;
+			}
 		}
 				
 	}
@@ -312,7 +367,8 @@ void process_WIFIEvent(unsigned char * ID)
 
 					//changeIOinit_inverter(inverterInfo,IO_Init_Status);
 					//保存新IO初始化状态到Flash
-					Write_IO_INIT_STATU(&IO_Init_Status);	
+					//0：低电平（关闭心跳功能）1：高电平（打开心跳功能）
+					Write_IO_INIT_STATU(&IO_Init_Status); 
 					
 				}else
 				{
@@ -353,7 +409,8 @@ void process_UART1Event(void)
 					//设置WIFI密码
 					if(ret != 0) 	USART1_Response_SET_ID(ret);
 					Write_CHANNEL(Channel);
-					
+					IO_Init_Status= 1;
+					Write_IO_INIT_STATU(&IO_Init_Status);
 					//设置WIFI密码
 					USART1_ECUID12[12] = '\0';
 					delay_ms(5000);

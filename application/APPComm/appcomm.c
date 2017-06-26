@@ -2,6 +2,9 @@
 #include "string.h"
 #include "SEGGER_RTT.h"
 
+
+#define FAILED_NUM			3
+
 static char SendData[MAXINVERTERCOUNT*INVERTERLENGTH + 16 + 9] = {'\0'};
 
 //解析收到的数据
@@ -41,6 +44,7 @@ void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_in
 {
 	
 	inverter_info *curinverter = inverter;
+	unsigned char mos_a_restart = 0;
 	int i = 0;
 	int length = 0;
 	memset(SendData,'\0',MAXINVERTERCOUNT*INVERTERLENGTH + 16 + 9);
@@ -86,8 +90,14 @@ void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_in
 			SendData[31+i*INVERTERLENGTH] = curinverter->off_times%256;
 			SEGGER_RTT_printf(0, "off_times %d    ",curinverter->off_times);
 
-			memcpy(&SendData[32+i*INVERTERLENGTH],&curinverter->mos_status,1);
-			SEGGER_RTT_printf(0, "mos_status %d\n",curinverter->mos_status);
+			mos_a_restart = curinverter->mos_status;
+			if(curinverter->restartNum.pre_restart_num >= FAILED_NUM)	//表示频繁重启
+			{
+				mos_a_restart |= (1 << 1) ;
+			}
+			
+			memcpy(&SendData[32+i*INVERTERLENGTH],&mos_a_restart,1);
+			SEGGER_RTT_printf(0, "mos_a_restart + mos_status %d\n",mos_a_restart);
 
 			
 			curinverter++;

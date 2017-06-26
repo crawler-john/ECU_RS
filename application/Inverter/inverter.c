@@ -15,7 +15,9 @@ int init_ecu(void)
 	Read_CHANNEL(Signal_Channel);
 	Channel_char = (Signal_Channel[0] -'0')*10 +(Signal_Channel[1] -'0');
 	setChannel(Channel_char);
-	SEGGER_RTT_printf(0, "ECU ID :%s        Signal_Channel:   %s    %d\n",ECUID12,Signal_Channel,Channel_char);
+
+	Read_IO_INIT_STATU(&IO_Init_Status);
+	SEGGER_RTT_printf(0, "ECU ID :%s        Signal_Channel:   %s    %d   IO_Init_Status:%x\n",ECUID12,Signal_Channel,Channel_char,IO_Init_Status);
 	return 0;
 }
 
@@ -36,6 +38,8 @@ int init_inverter(inverter_info *inverter)
 		curinverter->off_times = 0;
 		curinverter->mos_status = 0;
 		curinverter->heart_Failed_times = 0;
+		curinverter->restartNum.cur_restart_num = 0;
+		curinverter->restartNum.pre_restart_num = 0;
 	}
 	
 	//¡ä¨®EEPROM?D?¨¢¨¨???¡À??¡ÂD??¡é
