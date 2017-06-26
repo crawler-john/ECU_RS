@@ -589,8 +589,8 @@ void WIFI_GetEvent(int *messageLen,unsigned char *ID)
 				if((PackLen - 3) == pos)   //接收数据长度结束
 				{
 					eStateMachine = EN_RECV_ST_GET_END;
-
-					TIM3_Int_Init(1499,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+					delay_ms(10);
+					TIM3_Int_Init(299,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
 					break;
 				}
 				//TIM3_Int_Init(299,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
@@ -657,11 +657,11 @@ void WIFI_GetEvent(int *messageLen,unsigned char *ID)
 						Cur = 0;
 						pos = 0;		
 						TIM3_Int_Deinit();
-						//////TIM3_Int_Init(299,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+						//TIM3_Int_Init(299,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
 						break;
 				}
 				
-				////TIM3_Int_Init(299,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
+				//TIM3_Int_Init(299,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
 				
 				pos++;
 			}
