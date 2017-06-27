@@ -15,25 +15,30 @@
 /*  Definitions                                                              */
 /*****************************************************************************/
 #define MAXINVERTERCOUNT 100	//最大的逆变器数
-#define INVERTERLENGTH 11	//最大的逆变器数
+#define INVERTERLENGTH 12	//最大的逆变器数
+#pragma pack(push)  
+#pragma pack(1) 
 
-typedef struct restartNum
+typedef struct
 {
-    char pre_restart_num:4;
-    char cur_restart_num:4;
-}restart_num_t;
+    unsigned char bind_status:1;		// 绑定状态  
+    unsigned char mos_status:1;			//开关机状态 :  1 开    0 关
+	unsigned char function_status:1;	//功能开关状态: 1 开    0 关
+	unsigned char heart_Failed_times:3; // 连续通信失败次数  ，当大于3的时候默认该RSD2为关机状态
+	unsigned char unused:2;
+}status_t;
+
 
 
 typedef struct inverter_info_t{
 	unsigned char uid[6];		//逆变器ID（逆变器ID的BCD编码）
 	unsigned short heart_rate;	//心跳次数
 	unsigned short off_times;	//心跳超时次数
-	unsigned char mos_status;	//0x01 开、0x00 关
-	unsigned char bind_status;	//绑定状态  
-	unsigned char channel;	//信道状态
-	unsigned char heart_Failed_times;	//连续通信失败次数  ，当大于3的时候默认该RSD2为关机状态
-	restart_num_t restartNum;
+	status_t status;			//部分状态信息 
+	unsigned char channel;		//信道状态
+	unsigned char restartNum;	//一天内的重启次数
 }inverter_info;
 
+#pragma pack(pop) 
 
 #endif /*__VARIATION_H__*/

@@ -44,7 +44,4 @@ extern int UART1_ResolveFlag;
 int init_ecu(void);
 int init_inverter(inverter_info *inverter);
 int add_inverter(inverter_info *inverter,int num,char *uidstring);
-void bind_inverter(inverter_info *inverter);
-void changeChannel_inverter(inverter_info *inverter,char channel);
-void changeIOinit_inverter(inverter_info *inverter,char IO_Status);
 #endif /*__INVERTER_H__*/

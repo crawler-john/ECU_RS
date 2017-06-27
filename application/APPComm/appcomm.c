@@ -19,7 +19,6 @@
 /*****************************************************************************/
 /*  Definitions                                                              */
 /*****************************************************************************/
-#define FAILED_NUM			3
 
 /*****************************************************************************/
 /*  Variable Declarations                                                    */
@@ -67,7 +66,7 @@ void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_in
 {
 	
 	inverter_info *curinverter = inverter;
-	unsigned char mos_a_restart = 0;
+	unsigned char mos_a_function = 0;
 	int i = 0;
 	int length = 0;
 	memset(SendData,'\0',MAXINVERTERCOUNT*INVERTERLENGTH + 16 + 9);
@@ -113,15 +112,18 @@ void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_in
 			SendData[31+i*INVERTERLENGTH] = curinverter->off_times%256;
 			SEGGER_RTT_printf(0, "off_times %d    ",curinverter->off_times);
 
-			mos_a_restart = curinverter->mos_status;
-			if(curinverter->restartNum.pre_restart_num >= FAILED_NUM)	//±íÊ¾Æµ·±ÖØÆô
+			mos_a_function = curinverter->status.mos_status;
+			if(curinverter->status.function_status !=  0)	
 			{
-				mos_a_restart |= (1 << 1) ;
+				mos_a_function |= (curinverter->status.function_status << 1) ;
 			}
+			SEGGER_RTT_printf(0, "mos:%d   function %d   ",curinverter->status.mos_status,curinverter->status.function_status);
 			
-			memcpy(&SendData[32+i*INVERTERLENGTH],&mos_a_restart,1);
-			SEGGER_RTT_printf(0, "mos_a_restart + mos_status %d\n",mos_a_restart);
-
+			memcpy(&SendData[32+i*INVERTERLENGTH],&mos_a_function,1);
+			memcpy(&SendData[33+i*INVERTERLENGTH],&curinverter->restartNum,1);
+			
+			SEGGER_RTT_printf(0, "mos_a_function %d\n",mos_a_function);
+			
 			
 			curinverter++;
 		}

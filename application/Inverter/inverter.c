@@ -41,22 +41,22 @@ int init_ecu(void)
 int init_inverter(inverter_info *inverter)
 {
 	int i;
-	
+	char bindstatus = 0;
 	unsigned char UID_NUM[2] = {'\0'};
 
 	inverter_info *curinverter = inverter;
 	UID_NUM[0] = 0;
 	UID_NUM[1] = 0;
+	
 	//???ùóDμ???±??÷????
 	for(i=0; i<MAXINVERTERCOUNT; i++, curinverter++)
 	{
 		memset(curinverter->uid, 0xff, sizeof(curinverter->uid));			//??????±??÷ID
 		curinverter->heart_rate = 0;
 		curinverter->off_times = 0;
-		curinverter->mos_status = 0;
-		curinverter->heart_Failed_times = 0;
-		curinverter->restartNum.cur_restart_num = 0;
-		curinverter->restartNum.pre_restart_num = 0;
+		curinverter->status.mos_status = 0;
+		curinverter->status.function_status = 0;
+		curinverter->status.heart_Failed_times = 0;
 	}
 	
 	//′óEEPROM?D?áè???±??÷D??￠
@@ -75,16 +75,19 @@ int init_inverter(inverter_info *inverter)
 	for(i=0; (i<MAXINVERTERCOUNT && i<vaildNum); i++, curinverter++)
 	{
 		Read_UID((char *)curinverter->uid,(i+1));
-		Read_UID_Bind((char *)&curinverter->bind_status,(i+1));
-		if(curinverter->bind_status != 1)			//1 表示绑定成功
+		Read_UID_Bind(&bindstatus,(i+1));
+		if(bindstatus != 1)			//1 表示绑定成功
 		{
-			curinverter->bind_status = 0; //0表示绑定失败
+			curinverter->status.bind_status = 0; //0表示绑定失败
+		}else
+		{
+			curinverter->status.bind_status = 1; //0表示绑定失败
 		}
 
 		Read_UID_Channel((char *)&curinverter->channel,(i+1));
 		
 		
-		SEGGER_RTT_printf(0, "uid%d: %02x%02x%02x%02x%02x%02x   bind:%d channel:%d\n",(i+1),curinverter->uid[0],curinverter->uid[1],curinverter->uid[2],curinverter->uid[3],curinverter->uid[4],curinverter->uid[5],curinverter->bind_status,curinverter->channel);
+		SEGGER_RTT_printf(0, "uid%d: %02x%02x%02x%02x%02x%02x   bind:%d channel:%d\n",(i+1),curinverter->uid[0],curinverter->uid[1],curinverter->uid[2],curinverter->uid[3],curinverter->uid[4],curinverter->uid[5],curinverter->status.bind_status,curinverter->channel);
 	}
 	return 0;
 }
@@ -116,37 +119,4 @@ int add_inverter(inverter_info *inverter,int num,char *uidstring)
 }
 
 
-//°ó?¨??±??÷
-void bind_inverter(inverter_info *inverter)
-{
-	int i = 0;
-	switchLed(0x01);
-	for(i =0;i<vaildNum;i++)
-	{
-		RFM300_Bind_Uid(ECUID6,(char *)inverter[i].uid,0,0);
-	}
-	switchLed(0x00);
-}
 
-//±??üD?μà
-void changeChannel_inverter(inverter_info *inverter,char channel)
-{
-	int i = 0;
-	switchLed(0x01);
-	for(i =0;i<vaildNum;i++)
-	{
-		RFM300_Bind_Uid(ECUID6,(char *)inverter[i].uid,channel,0);
-	}
-	switchLed(0x00);
-}
-
-void changeIOinit_inverter(inverter_info *inverter,char IO_Status)
-{
-	int i = 0;
-	switchLed(0x01);
-	for(i =0;i<vaildNum;i++)
-	{
-		RFM300_IO_Init(ECUID6,(char *)inverter[i].uid,IO_Status,(char *)&inverterInfo[curSequence].mos_status,&IO_Init_Status,&inverterInfo[curSequence].heart_rate,&inverterInfo[curSequence].off_times,&ver);
-	}
-	switchLed(0x00);
-}

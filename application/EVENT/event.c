@@ -27,13 +27,12 @@
 /*****************************************************************************/
 /*  Definitions                                                              */
 /*****************************************************************************/
-#define PERIOD_NUM			10
+#define PERIOD_NUM			3600
 
 /*****************************************************************************/
 /*  Variable Declarations                                                    */
 /*****************************************************************************/
-char IO_Init_Status_inverter = 0;	//逆变器IO初始状态
-char period_sequence = 0;
+unsigned short comm_failed_Num = 0;
 unsigned short pre_heart_rate;
 
 
@@ -133,15 +132,14 @@ void process_HeartBeatEvent(void)
 		
 		//先保存上一轮的心跳
 		pre_heart_rate = inverterInfo[curSequence].heart_rate;
-		ret = RFM300_Heart_Beat(ECUID6,(char *)inverterInfo[curSequence].uid,(char *)&inverterInfo[curSequence].mos_status,&IO_Init_Status_inverter,&inverterInfo[curSequence].heart_rate,&inverterInfo[curSequence].off_times,&ver);
+		ret = RFM300_Heart_Beat(ECUID6,(char *)inverterInfo[curSequence].uid,(status_t *)&inverterInfo[curSequence].status,&inverterInfo[curSequence].heart_rate,&inverterInfo[curSequence].off_times,&ver);
 	
 		process_WIFIEvent();
 
-		
 		if(ret == 0)	//发送心跳包失败
 		{
 			//查看绑定标志位，如果绑定未成功，尝试绑定。
-			if(inverterInfo[curSequence].bind_status != 1)
+			if(inverterInfo[curSequence].status.bind_status != 1)
 			{
 				ret = RFM300_Bind_Uid(ECUID6,(char *)inverterInfo[curSequence].uid,0,0);
 				
@@ -152,18 +150,26 @@ void process_HeartBeatEvent(void)
 				{
 					if(Write_UID_Bind(0x01,(curSequence+1)) == 0)
 					{
-						inverterInfo[curSequence].bind_status = 1;
-						inverterInfo[curSequence].heart_Failed_times = 0;
+						inverterInfo[curSequence].status.bind_status = 1;
+						inverterInfo[curSequence].status.heart_Failed_times = 0;
 					}
 					
 				}
 			}
-			inverterInfo[curSequence].heart_Failed_times++;
-			if(inverterInfo[curSequence].heart_Failed_times >= 3)
-				inverterInfo[curSequence].mos_status = 0;
+			inverterInfo[curSequence].status.heart_Failed_times++;
+			if(inverterInfo[curSequence].status.heart_Failed_times >= 3)
+			{
+				inverterInfo[curSequence].status.heart_Failed_times = 3;
+				inverterInfo[curSequence].status.mos_status = 0;
+			}
+				
+			//通信失败，失败次数++
+			comm_failed_Num ++;
 		}else	//发送心跳包成功
 		{
-			inverterInfo[curSequence].heart_Failed_times = 0;
+			//通信失败，失败次数++
+			comm_failed_Num  = 0;
+			inverterInfo[curSequence].status.heart_Failed_times = 0;
 			//心跳成功  判断当前系统信道和当前RSD2最后一次通信的信道是否不同   不同则更改之
 			if(Channel_char != inverterInfo[curSequence].channel)
 			{
@@ -176,17 +182,17 @@ void process_HeartBeatEvent(void)
 			}
 
 			//心跳成功 判断是否需要关闭或者打开心跳功能
-			if(IO_Init_Status_inverter == 0)	//心跳功能打开
+			if(inverterInfo[curSequence].status.function_status == 1)	//心跳功能打开
 			{
 				if(IO_Init_Status == 0)		//需要关闭心跳功能
 				{
-					RFM300_IO_Init(ECUID6,(char *)inverterInfo[curSequence].uid,0x02,(char *)&inverterInfo[curSequence].mos_status,&IO_Init_Status_inverter,&inverterInfo[curSequence].heart_rate,&inverterInfo[curSequence].off_times,&ver);
+					RFM300_IO_Init(ECUID6,(char *)inverterInfo[curSequence].uid,0x02,(status_t *)&inverterInfo[curSequence].status,&inverterInfo[curSequence].heart_rate,&inverterInfo[curSequence].off_times,&ver);
 				}
 			}else					//心跳功能关闭
 			{
 				if(IO_Init_Status == 1)		//需要打开心跳功能
 				{
-					RFM300_IO_Init(ECUID6,(char *)inverterInfo[curSequence].uid,0x01,(char *)&inverterInfo[curSequence].mos_status,&IO_Init_Status_inverter,&inverterInfo[curSequence].heart_rate,&inverterInfo[curSequence].off_times,&ver);
+					RFM300_IO_Init(ECUID6,(char *)inverterInfo[curSequence].uid,0x01,(status_t *)&inverterInfo[curSequence].status,&inverterInfo[curSequence].heart_rate,&inverterInfo[curSequence].off_times,&ver);
 				}
 			}
 
@@ -196,7 +202,7 @@ void process_HeartBeatEvent(void)
 			if(inverterInfo[curSequence].heart_rate < pre_heart_rate)
 			{
 				//当前一轮重启次数+1
-				inverterInfo[curSequence].restartNum.cur_restart_num++;
+				inverterInfo[curSequence].restartNum++;
 			}
 			
 		}
@@ -233,19 +239,19 @@ void process_HeartBeatEvent(void)
 		if(curSequence >= vaildNum)		//当轮训的序号大于最后一台时，更换到第0台
 		{
 			curSequence = 0;
-			period_sequence++;
-
-			//轮训10次结束
-			if(period_sequence == PERIOD_NUM)
-			{
-				for(curSequence = 0;curSequence < vaildNum;curSequence++)
-				{
-					inverterInfo[curSequence].restartNum.pre_restart_num = inverterInfo[curSequence].restartNum.cur_restart_num;
-					inverterInfo[curSequence].restartNum.cur_restart_num = 0;
-				}
-				curSequence = 0;
-			}
 		}
+		
+		//连续通讯不上1小时   表示关机状态
+		if(comm_failed_Num >= PERIOD_NUM)
+		{
+			//SEGGER_RTT_printf(0, "comm_failed_Num:%d   \n",comm_failed_Num);
+			for(curSequence = 0;curSequence < vaildNum;curSequence++)
+			{
+				inverterInfo[curSequence].restartNum = 0;
+			}
+			curSequence = 0;
+		}
+		
 				
 	}
 }
@@ -296,7 +302,6 @@ void process_WIFI(unsigned char * ID)
 					init_inverter(inverterInfo);
 					//进行一些绑定操作
 					LED_off();
-					//bind_inverter(inverterInfo);
 				}	else
 				{	//不匹配
 					APP_Response_SetNetwork(ID,0x01);
@@ -368,7 +373,6 @@ void process_WIFI(unsigned char * ID)
 					IO_Init_Status = WIFI_RecvData[23];
 					APP_Response_IOInitStatus(ID,0x00);
 
-					//changeIOinit_inverter(inverterInfo,IO_Init_Status);
 					//保存新IO初始化状态到Flash
 					//0：低电平（关闭心跳功能）1：高电平（打开心跳功能）
 					Write_IO_INIT_STATU(&IO_Init_Status); 
@@ -466,7 +470,6 @@ void process_UART1Event(void)
 					init_inverter(inverterInfo);
 					//进行一些绑定操作
 					LED_off();
-					//bind_inverter(inverterInfo);
 				}	
 				break;
 						
