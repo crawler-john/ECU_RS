@@ -26,6 +26,7 @@
 #include "variation.h"
 #include "event.h"
 #include "inverter.h"
+#include "watchdog.h"
 
 /*****************************************************************************/
 /*  Variable Declarations                                                    */
@@ -55,11 +56,12 @@ int main(void)
 	LED_init();										//LED灯初始化
 	EXTIX_Init();									//恢复出厂设置IO中断初始化
 	KEY_Init();										//恢复出厂设置按键初始化
-
+	
 	CMT2300_init();
 	uart1_init(57600);
 	uart2_init(57600);							//串口初始化
 	TIM2_Int_Init(4999,7199);    //心跳包超时事件定时器初始化
+	rt_hw_watchdog_init();
 	SEGGER_RTT_printf(0, "init OK \n");
 	init_ecu();										//初始化ECU
 	init_inverter(inverterInfo);	//初始化逆变器
