@@ -67,13 +67,8 @@ int main(void)
 	while(1)
 	{	
 		//检测WIFI事件
-		WIFI_GetEvent(&messageLen,ID);
-		//判断是否有WIFI接收事件
-		if(WIFI_Recv_Event == 1)
-		{
-			process_WIFIEvent(ID);
-			WIFI_Recv_Event = 0;
-		}
+		process_WIFIEvent();
+
 		//检测USART1事件
 		USART1_GetEvent(&messageUsart1Len);
 		if(USART1_Recv_Event == 1)

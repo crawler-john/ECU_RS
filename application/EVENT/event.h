@@ -1,8 +1,24 @@
+/*****************************************************************************/
+/* File      : event.h                                                       */
+/*****************************************************************************/
+/*  History:                                                                 */
+/*****************************************************************************/
+/*  Date       * Author          * Changes                                   */
+/*****************************************************************************/
+/*  2017-06-09 * Shengfeng Dong  * Creation of the file                      */
+/*             *                 *                                           */
+/*****************************************************************************/
+
+/*****************************************************************************/
+/*  Include Files                                                            */
+/*****************************************************************************/
 #ifndef __EVENT_H__
 #define __EVENT_H__
 #include "variation.h"
 
-
+/*****************************************************************************/
+/*  Variable Declarations                                                    */
+/*****************************************************************************/
 extern char ECUID12[13];
 extern char ECUID6[7];
 extern char Signal_Level;
@@ -23,9 +39,12 @@ extern int UART1_Data_Len;
 extern int UART1_Command_Id;
 extern int UART1_ResolveFlag;
 
-
+/*****************************************************************************/
+/*  Function Declarations                                                    */
+/*****************************************************************************/
+void process_WIFIEvent(void);
 void process_HeartBeatEvent(void);
-void process_WIFIEvent(unsigned char * ID);
+void process_WIFI(unsigned char * ID);
 void process_UART1Event(void);
 void process_KEYEvent(void);
 void process_WIFI_RST(void);

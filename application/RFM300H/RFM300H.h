@@ -1,8 +1,24 @@
+/*****************************************************************************/
+/* File      : rfm300h.h                                                     */
+/*****************************************************************************/
+/*  History:                                                                 */
+/*****************************************************************************/
+/*  Date       * Author          * Changes                                   */
+/*****************************************************************************/
+/*  2017-06-04 * Shengfeng Dong  * Creation of the file                      */
+/*             *                 *                                           */
+/*****************************************************************************/
 #ifndef __RFM300H_H__
 #define __RFM300H_H__
 
+/*****************************************************************************/
+/*  Include Files                                                            */
+/*****************************************************************************/
 #include "CMT2300.h"
 
+/*****************************************************************************/
+/*  Function Declarations                                                    */
+/*****************************************************************************/
 int RFM300_Bind_Uid(char *ECUID,char *UID,char channel,char rate);
 int RFM300_Heart_Beat(char *ECUID,char *UID,char *mos_Status,char *IO_InitStatus,unsigned short *heart_rate,unsigned short * offNum,char *Ver);
 int RFM300_IO_Init(char *ECUID,char *UID,char IO_Status,char *mos_Status,char *IO_InitStatus,unsigned short *heart_rate,unsigned short * offNum,char *Ver);

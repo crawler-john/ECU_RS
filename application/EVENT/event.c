@@ -1,3 +1,17 @@
+/*****************************************************************************/
+/* File      : event.c                                                       */
+/*****************************************************************************/
+/*  History:                                                                 */
+/*****************************************************************************/
+/*  Date       * Author          * Changes                                   */
+/*****************************************************************************/
+/*  2017-06-09 * Shengfeng Dong  * Creation of the file                      */
+/*             *                 *                                           */
+/*****************************************************************************/
+
+/*****************************************************************************/
+/*  Include Files                                                            */
+/*****************************************************************************/
 #include "event.h"
 #include "RFM300H.h"
 #include "file.h"
@@ -10,10 +24,14 @@
 #include "delay.h"
 #include "led.h"
 
-
+/*****************************************************************************/
+/*  Definitions                                                              */
+/*****************************************************************************/
 #define PERIOD_NUM			10
 
-
+/*****************************************************************************/
+/*  Variable Declarations                                                    */
+/*****************************************************************************/
 char IO_Init_Status_inverter = 0;	//逆变器IO初始状态
 char period_sequence = 0;
 unsigned short pre_heart_rate;
@@ -27,7 +45,9 @@ typedef enum
     HARDTEST_TEST_433  		= 3
 } eHardWareID;// receive state machin
 
-
+/*****************************************************************************/
+/*  Function Implementations                                                 */
+/*****************************************************************************/
 int ResolveWifiPasswd(char *oldPasswd,int *oldLen,char *newPasswd,int *newLen,char *passwdstring)
 {
 	*oldLen = (passwdstring[0]-'0')*10+(passwdstring[1]-'0');
@@ -84,6 +104,21 @@ int HardwareTest(char testItem)
 	return 0;
 }
 
+
+void process_WIFIEvent(void)
+{
+	//检测WIFI事件
+	WIFI_GetEvent(&messageLen,ID);
+	//判断是否有WIFI接收事件
+	if(WIFI_Recv_Event == 1)
+	{
+		process_WIFI(ID);
+		WIFI_Recv_Event = 0;
+	}
+
+}
+
+
 //心跳事件处理
 void process_HeartBeatEvent(void)
 {
@@ -94,27 +129,14 @@ void process_HeartBeatEvent(void)
 	{
 		//SEGGER_RTT_printf(0, "RFM300_Heart_Beat %02x%02x%02x%02x%02x%02x\n",inverterInfo[curSequence].uid[0],inverterInfo[curSequence].uid[1],inverterInfo[curSequence].uid[2],inverterInfo[curSequence].uid[3],inverterInfo[curSequence].uid[4],inverterInfo[curSequence].uid[5]);
 		
-		//检测WIFI事件
-		WIFI_GetEvent(&messageLen,ID);
-		//判断是否有WIFI接收事件
-		if(WIFI_Recv_Event == 1)
-		{
-			process_WIFIEvent(ID);
-			WIFI_Recv_Event = 0;
-		}
+		process_WIFIEvent();
 		
 		//先保存上一轮的心跳
 		pre_heart_rate = inverterInfo[curSequence].heart_rate;
 		ret = RFM300_Heart_Beat(ECUID6,(char *)inverterInfo[curSequence].uid,(char *)&inverterInfo[curSequence].mos_status,&IO_Init_Status_inverter,&inverterInfo[curSequence].heart_rate,&inverterInfo[curSequence].off_times,&ver);
 	
-		//检测WIFI事件
-		WIFI_GetEvent(&messageLen,ID);
-		//判断是否有WIFI接收事件
-		if(WIFI_Recv_Event == 1)
-		{
-			process_WIFIEvent(ID);
-			WIFI_Recv_Event = 0;
-		}
+		process_WIFIEvent();
+
 		
 		if(ret == 0)	//发送心跳包失败
 		{
@@ -123,14 +145,8 @@ void process_HeartBeatEvent(void)
 			{
 				ret = RFM300_Bind_Uid(ECUID6,(char *)inverterInfo[curSequence].uid,0,0);
 				
-				//检测WIFI事件
-				WIFI_GetEvent(&messageLen,ID);
-				//判断是否有WIFI接收事件
-				if(WIFI_Recv_Event == 1)
-				{
-					process_WIFIEvent(ID);
-					WIFI_Recv_Event = 0;
-				}
+				process_WIFIEvent();
+
 				//SEGGER_RTT_printf(0, "RFM300_Bind_Uid %02x%02x%02x%02x%02x%02x\n",inverterInfo[curSequence].uid[0],inverterInfo[curSequence].uid[1],inverterInfo[curSequence].uid[2],inverterInfo[curSequence].uid[3],inverterInfo[curSequence].uid[4],inverterInfo[curSequence].uid[5]);
 				if(ret == 1)
 				{
@@ -174,14 +190,7 @@ void process_HeartBeatEvent(void)
 				}
 			}
 
-			//检测WIFI事件
-			WIFI_GetEvent(&messageLen,ID);
-			//判断是否有WIFI接收事件
-			if(WIFI_Recv_Event == 1)
-			{
-				process_WIFIEvent(ID);
-				WIFI_Recv_Event = 0;
-			}
+			process_WIFIEvent();
 
 			//如果当前一轮心跳小于上一轮心跳,表示重启
 			if(inverterInfo[curSequence].heart_rate < pre_heart_rate)
@@ -192,14 +201,8 @@ void process_HeartBeatEvent(void)
 			
 		}
 
-		//检测WIFI事件
-		WIFI_GetEvent(&messageLen,ID);
-		//判断是否有WIFI接收事件
-		if(WIFI_Recv_Event == 1)
-		{
-			process_WIFIEvent(ID);
-			WIFI_Recv_Event = 0;
-		}
+		process_WIFIEvent();
+
 		
 		//在绑定成功的情况下才能改信道
 		//if(inverterInfo[curSequence].bind_status == 1)
@@ -248,7 +251,7 @@ void process_HeartBeatEvent(void)
 }
 
 //WIFI事件处理
-void process_WIFIEvent(unsigned char * ID)
+void process_WIFI(unsigned char * ID)
 {
 	ResolveFlag =  Resolve_RecvData((char *)WIFI_RecvData,&Data_Len,&Command_Id);
 	if(ResolveFlag == 0)
