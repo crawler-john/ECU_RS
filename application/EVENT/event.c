@@ -62,6 +62,7 @@ int HardwareTest(char testItem)
 {
 	char testWrite[10] = "YUNENG APS";
 	char testRead[10] = {'\0'};
+
 	switch(testItem)
 	{
 		case HARDTEST_TEST_ALL:
@@ -79,6 +80,7 @@ int HardwareTest(char testItem)
 			}
 			
 			//测试433模块
+
 			
 			break;
 		
@@ -95,8 +97,8 @@ int HardwareTest(char testItem)
 			break;
 		
 		case HARDTEST_TEST_433:
-			//测试EEPROM读写
-		
+			//测试433模块
+
 			break;
 				
 	}
@@ -202,7 +204,8 @@ void process_HeartBeatEvent(void)
 			if(inverterInfo[curSequence].heart_rate < pre_heart_rate)
 			{
 				//当前一轮重启次数+1
-				inverterInfo[curSequence].restartNum++;
+				if(inverterInfo[curSequence].restartNum < 255)
+					inverterInfo[curSequence].restartNum++;
 			}
 			
 		}
