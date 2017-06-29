@@ -106,7 +106,7 @@ int RFM300_Bind_Uid(char *ECUID,char *UID,char channel,char rate)
 int RFM300_Heart_Beat(char *ECUID,char *UID,status_t* status,unsigned short *heart_rate,unsigned short * offNum,char *Ver)
 {
 	
-	char mos_Status = 0;
+	//char mos_Status = 0;
 	char IO_InitStatus = 0;
 	int i,check = 0;
 	unsigned char RF_leng = 0;
@@ -173,14 +173,15 @@ int RFM300_Heart_Beat(char *ECUID,char *UID,status_t* status,unsigned short *hea
 			(Senddata[15]==Recvdata[15]))
 		{
 
-			mos_Status = Recvdata[16];
-			if(mos_Status == 0)
-			{	
+			//mos_Status = Recvdata[16];
+			//SEGGER_RTT_printf(0,"Recvdata[16] : %d\n",mos_Status);
+			//if(mos_Status == 0)
+			//{	
 				status->mos_status = 1;
-			}else
-			{
-				status->mos_status = 0;
-			}
+			//}else
+			//{
+				//status->mos_status = 0;
+			//}
 			
 			IO_InitStatus = Recvdata[17];
 			if(IO_InitStatus == 0)
