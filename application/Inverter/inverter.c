@@ -62,17 +62,17 @@ int init_inverter(inverter_info *inverter)
 	//¡ä¨®EEPROM?D?¨¢¨¨???¡À??¡ÂD??¡é
 
 	Read_UID_NUM((char *)&UID_NUM);
-	vaildNum = UID_NUM[0] *256 + UID_NUM[1];
-	if(vaildNum > MAXINVERTERCOUNT)
+	validNum = UID_NUM[0] *256 + UID_NUM[1];
+	if(validNum > MAXINVERTERCOUNT)
 	{
-		vaildNum = 0;
+		validNum = 0;
 	}
 	//¨¨?1?¦Ì¡À?¡ã¨®??¡¥?¡Â¨ºy¨¢??a0¡ê????¡ä¨¬¨¢¨º?¦Ì?3¡ê¨¢¨¢
-	if(vaildNum == 0)
+	if(validNum == 0)
 		LED_on();
-	SEGGER_RTT_printf(0, "vaildNum :%d     \n",vaildNum);
+	SEGGER_RTT_printf(0, "validNum :%d     \n",validNum);
 	curinverter = inverter;
-	for(i=0; (i<MAXINVERTERCOUNT && i<vaildNum); i++, curinverter++)
+	for(i=0; (i<MAXINVERTERCOUNT && i<validNum); i++, curinverter++)
 	{
 		Read_UID((char *)curinverter->uid,(i+1));
 		Read_UID_Bind(&bindstatus,(i+1));

@@ -38,7 +38,7 @@ char Signal_Channel[3] = {'\0'};
 char Channel_char = 0;
 char IO_Init_Status = 0;			//IO初始状态
 char ver = 0;						//优化器版本号
-int vaildNum = 0;				//当前有效台数
+int validNum = 0;				//当前有效台数
 int curSequence = 0;		//心跳轮训机器号
 inverter_info inverterInfo[MAXINVERTERCOUNT] = {'\0'};
 int Data_Len = 0,Command_Id = 0,ResolveFlag = 0,messageLen = 0,messageUsart1Len = 0;

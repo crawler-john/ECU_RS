@@ -126,7 +126,7 @@ void process_HeartBeatEvent(void)
 	int ret = 0;
 	//SEGGER_RTT_printf(0, "COMM_Timeout_Event \n");
 	//发送心跳包
-	if(	vaildNum >0	)
+	if(	validNum >0	)
 	{
 		//SEGGER_RTT_printf(0, "RFM300_Heart_Beat %02x%02x%02x%02x%02x%02x\n",inverterInfo[curSequence].uid[0],inverterInfo[curSequence].uid[1],inverterInfo[curSequence].uid[2],inverterInfo[curSequence].uid[3],inverterInfo[curSequence].uid[4],inverterInfo[curSequence].uid[5]);
 		
@@ -239,7 +239,7 @@ void process_HeartBeatEvent(void)
 		}
 		
 		curSequence++;
-		if(curSequence >= vaildNum)		//当轮训的序号大于最后一台时，更换到第0台
+		if(curSequence >= validNum)		//当轮训的序号大于最后一台时，更换到第0台
 		{
 			curSequence = 0;
 		}
@@ -248,7 +248,7 @@ void process_HeartBeatEvent(void)
 		if(comm_failed_Num >= PERIOD_NUM)
 		{
 			//SEGGER_RTT_printf(0, "comm_failed_Num:%d   \n",comm_failed_Num);
-			for(curSequence = 0;curSequence < vaildNum;curSequence++)
+			for(curSequence = 0;curSequence < validNum;curSequence++)
 			{
 				inverterInfo[curSequence].restartNum = 0;
 			}
@@ -281,7 +281,7 @@ void process_WIFI(unsigned char * ID)
 				if(!memcmp(&WIFI_RecvData[11],ECUID12,12))
 				{	//匹配成功进行相应的操作
 					SEGGER_RTT_printf(0, "COMMAND_SYSTEMINFO  Mapping\n");
-					APP_Response_SystemInfo(ID,0x00,inverterInfo,vaildNum);
+					APP_Response_SystemInfo(ID,0x00,inverterInfo,validNum);
 				}	else
 				{	//不匹配
 					SEGGER_RTT_printf(0, "COMMAND_SYSTEMINFO   Not Mapping");

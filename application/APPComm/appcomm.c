@@ -62,7 +62,7 @@ void APP_Response_BaseInfo(unsigned char *ID,char *ECU_NO,char *TYPE,char SIGNAL
 }
 
 //ECU-RS系统信息回应   mapflag   0表示匹配成功  1 表示匹配不成功
-void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_info *inverter,int vaildNum)
+void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_info *inverter,int validNum)
 {
 	
 	inverter_info *curinverter = inverter;
@@ -71,7 +71,7 @@ void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_in
 	int length = 0;
 	memset(SendData,'\0',MAXINVERTERCOUNT*INVERTERLENGTH + 16 + 9);
 	
-	//SEGGER_RTT_printf(0, "SystemInfo %d %d  %d\n",mapflag,vaildNum,(MAXINVERTERCOUNT*INVERTERLENGTH + 16));
+	//SEGGER_RTT_printf(0, "SystemInfo %d %d  %d\n",mapflag,validNum,(MAXINVERTERCOUNT*INVERTERLENGTH + 16));
 
 	if(mapflag == 1)
 	{
@@ -98,7 +98,7 @@ void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_in
 		SendData[7] = ID[6];
 		SendData[8] = ID[7];		
 		
-		for(i=0; (i<MAXINVERTERCOUNT)&&(i < vaildNum); i++)			
+		for(i=0; (i<MAXINVERTERCOUNT)&&(i < validNum); i++)			
 		{
 			memcpy(&SendData[22+i*INVERTERLENGTH],curinverter->uid,6);
 			SEGGER_RTT_printf(0, "SystemInfo %02x%02x%02x%02x%02x%02x   ",curinverter->uid[0],curinverter->uid[1],curinverter->uid[2],curinverter->uid[3],curinverter->uid[4],curinverter->uid[5]);
@@ -128,9 +128,9 @@ void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_in
 			curinverter++;
 		}
 
-		if(vaildNum > 0)
+		if(validNum > 0)
 		{		
-			length = (16+(vaildNum*INVERTERLENGTH));
+			length = (16+(validNum*INVERTERLENGTH));
 			
 			//改变报文字节长度
 			SendData[14] = (length/1000) + '0';
