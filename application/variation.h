@@ -25,7 +25,8 @@ typedef struct
     unsigned char mos_status:1;			//开关机状态 :  1 开    0 关
 	unsigned char function_status:1;	//功能开关状态: 1 开    0 关
 	unsigned char heart_Failed_times:3; // 连续通信失败次数  ，当大于3的时候默认该RSD2为关机状态
-	unsigned char unused:2;
+	unsigned char pv1_low_voltage_pritection:1;
+	unsigned char pv2_low_voltage_pritection:1;
 }status_t;
 
 
@@ -37,6 +38,11 @@ typedef struct inverter_info_t{
 	status_t status;			//部分状态信息 
 	unsigned char channel;		//信道状态
 	unsigned char restartNum;	//一天内的重启次数
+	unsigned char PV1;		//PV1输入电压  精度1V
+	unsigned char PV2;		//PV2输入电压  精度 1V
+	unsigned char PI;		//输入电流 	精度0.1A
+	unsigned short Power1;	//PV1输入功率  精度1W
+	unsigned short Power2;	//PV2输入功率  精度1W 
 }inverter_info;
 
 #pragma pack(pop) 
