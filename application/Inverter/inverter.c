@@ -57,6 +57,15 @@ int init_inverter(inverter_info *inverter)
 		curinverter->status.mos_status = 0;
 		curinverter->status.function_status = 0;
 		curinverter->status.heart_Failed_times = 0;
+		curinverter->status.pv1_low_voltage_pritection = 0;
+		curinverter->status.pv2_low_voltage_pritection = 0;
+		curinverter->status.device_Type = 1;
+		curinverter->restartNum = 0;
+		curinverter->PV1 = 0;
+		curinverter->PV2 = 0;
+		curinverter->PI = 0;
+		curinverter->Power1 = 0;
+		curinverter->Power2 = 0;
 	}
 	
 	//¡ä¨®EEPROM?D?¨¢¨¨???¡À??¡ÂD??¡é
@@ -85,7 +94,6 @@ int init_inverter(inverter_info *inverter)
 		}
 
 		Read_UID_Channel((char *)&curinverter->channel,(i+1));
-		
 		
 		SEGGER_RTT_printf(0, "uid%d: %02x%02x%02x%02x%02x%02x   bind:%d channel:%d\n",(i+1),curinverter->uid[0],curinverter->uid[1],curinverter->uid[2],curinverter->uid[3],curinverter->uid[4],curinverter->uid[5],curinverter->status.bind_status,curinverter->channel);
 	}

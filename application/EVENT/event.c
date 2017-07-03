@@ -134,7 +134,7 @@ void process_HeartBeatEvent(void)
 		
 		//先保存上一轮的心跳
 		pre_heart_rate = inverterInfo[curSequence].heart_rate;
-		ret = RFM300_Heart_Beat(ECUID6,(char *)inverterInfo[curSequence].uid,(status_t *)&inverterInfo[curSequence].status,&inverterInfo[curSequence].heart_rate,&inverterInfo[curSequence].off_times,&ver);
+		ret = RFM300_Heart_Beat(ECUID6,&inverterInfo[curSequence]);
 	
 		process_WIFIEvent();
 
@@ -143,7 +143,7 @@ void process_HeartBeatEvent(void)
 			//查看绑定标志位，如果绑定未成功，尝试绑定。
 			if(inverterInfo[curSequence].status.bind_status != 1)
 			{
-				ret = RFM300_Bind_Uid(ECUID6,(char *)inverterInfo[curSequence].uid,0,0);
+				ret = RFM300_Bind_Uid(ECUID6,(char *)inverterInfo[curSequence].uid,0,0,&ver);
 				
 				process_WIFIEvent();
 
@@ -188,13 +188,13 @@ void process_HeartBeatEvent(void)
 			{
 				if(IO_Init_Status == 0)		//需要关闭心跳功能
 				{
-					RFM300_IO_Init(ECUID6,(char *)inverterInfo[curSequence].uid,0x02,(status_t *)&inverterInfo[curSequence].status,&inverterInfo[curSequence].heart_rate,&inverterInfo[curSequence].off_times,&ver);
+					RFM300_Status_Init(ECUID6,(char *)inverterInfo[curSequence].uid,0x02,0x00,&inverterInfo[curSequence].status);
 				}
 			}else					//心跳功能关闭
 			{
 				if(IO_Init_Status == 1)		//需要打开心跳功能
 				{
-					RFM300_IO_Init(ECUID6,(char *)inverterInfo[curSequence].uid,0x01,(status_t *)&inverterInfo[curSequence].status,&inverterInfo[curSequence].heart_rate,&inverterInfo[curSequence].off_times,&ver);
+					RFM300_Status_Init(ECUID6,(char *)inverterInfo[curSequence].uid,0x01,0x00,&inverterInfo[curSequence].status);
 				}
 			}
 
@@ -223,7 +223,7 @@ void process_HeartBeatEvent(void)
 				setChannel(inverterInfo[curSequence].channel);
 				
 				//发送更改信道报文
-				ret = RFM300_Bind_Uid(ECUID6,(char *)inverterInfo[curSequence].uid,Channel_char,0);
+				ret = RFM300_Bind_Uid(ECUID6,(char *)inverterInfo[curSequence].uid,Channel_char,0,&ver);
 				if(ret == 1)	//设置信道成功
 				{
 					if(Write_UID_Channel(Channel_char,(curSequence+1)) == 0)
@@ -272,7 +272,7 @@ void process_WIFI(unsigned char * ID)
 				//获取基本信息
 				//获取信号强度
 				Signal_Level = ReadRssiValue(1);
-				APP_Response_BaseInfo(ID,ECUID12,VERSION_ECU_RS,Signal_Level,Signal_Channel,5,SOFEWARE_VERSION);
+				APP_Response_BaseInfo(ID,ECUID12,VERSION_ECU_RS,Signal_Level,Signal_Channel,5,SOFEWARE_VERSION,inverterInfo,validNum);
 				break;
 					
 			case COMMAND_SYSTEMINFO:			//获取系统信息			APS11002602406000000009END

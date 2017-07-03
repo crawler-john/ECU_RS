@@ -20,7 +20,7 @@
 /*  Definitions                                                              */
 /*****************************************************************************/
 #define VERSION_ECU_RS    					"101"
-#define SOFEWARE_VERSION						"RS1.2"
+#define SOFEWARE_VERSION						"RS1.3"
 //地址
 #define  ADDRESS_Test 							0x000000			//用于板子收发测试    			10字节
 #define  ADDRESS_ECUID 							0x000010			//ECU-RS ID   需要我们转换	6字节

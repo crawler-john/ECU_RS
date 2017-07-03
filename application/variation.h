@@ -15,20 +15,21 @@
 /*  Definitions                                                              */
 /*****************************************************************************/
 #define MAXINVERTERCOUNT 100	//最大的逆变器数
-#define INVERTERLENGTH 12	//最大的逆变器数
+#define INVERTERLENGTH 20	//最大的逆变器数
 #pragma pack(push)  
 #pragma pack(1) 
 
 typedef struct
 {
-    unsigned char bind_status:1;		// 绑定状态  
-    unsigned char mos_status:1;			//开关机状态 :  1 开    0 关
-	unsigned char function_status:1;	//功能开关状态: 1 开    0 关
-	unsigned char heart_Failed_times:3; // 连续通信失败次数  ，当大于3的时候默认该RSD2为关机状态
-	unsigned char pv1_low_voltage_pritection:1;
-	unsigned char pv2_low_voltage_pritection:1;
+    unsigned short bind_status:1;		// 绑定状态  
+    unsigned short mos_status:1;			//开关机状态 :  1 开    0 关
+	unsigned short function_status:1;	//功能开关状态: 1 开    0 关
+	unsigned short heart_Failed_times:3; // 连续通信失败次数  ，当大于3的时候默认该RSD2为关机状态
+	unsigned short pv1_low_voltage_pritection:1;	// PV1欠压保护
+	unsigned short pv2_low_voltage_pritection:1;	// PV2欠压保护
+	unsigned short device_Type:4;					//设备类型  1:开关设备 0；监控设备
+	unsigned short unused:4;						//未使用变量  备用
 }status_t;
-
 
 
 typedef struct inverter_info_t{
