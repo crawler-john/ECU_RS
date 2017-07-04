@@ -129,6 +129,11 @@ void process_HeartBeatEvent(void)
 	if(	validNum >0	)
 	{
 		//SEGGER_RTT_printf(0, "RFM300_Heart_Beat %02x%02x%02x%02x%02x%02x\n",inverterInfo[curSequence].uid[0],inverterInfo[curSequence].uid[1],inverterInfo[curSequence].uid[2],inverterInfo[curSequence].uid[3],inverterInfo[curSequence].uid[4],inverterInfo[curSequence].uid[5]);
+
+		if(curSequence >= validNum)		//当轮训的序号大于最后一台时，更换到第0台
+		{
+			curSequence = 0;
+		}
 		
 		process_WIFIEvent();
 		
@@ -239,10 +244,7 @@ void process_HeartBeatEvent(void)
 		}
 		
 		curSequence++;
-		if(curSequence >= validNum)		//当轮训的序号大于最后一台时，更换到第0台
-		{
-			curSequence = 0;
-		}
+		
 		
 		//连续通讯不上1小时   表示关机状态
 		if(comm_failed_Num >= PERIOD_NUM)

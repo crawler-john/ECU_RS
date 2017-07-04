@@ -58,7 +58,7 @@ void APP_Response_BaseInfo(unsigned char *ID,char *ECU_NO,char *TYPE,char SIGNAL
 	
 	
 	memset(SendData,'\0',MAXINVERTERCOUNT*INVERTERLENGTH + 16 + 9);	
-	sprintf(SendData,"a00000000APS11%04d01%s%03d%03d%s%1d%03d%sEND\n",(37+Length),ECU_NO,101,SIGNAL_LEVEL,SIGNAL_CHANNEL,type,Length,Version);
+	sprintf(SendData,"a00000000APS11%04d01%s%03d%03d%s%1d%03d%sEND\n",(38+Length),ECU_NO,101,SIGNAL_LEVEL,SIGNAL_CHANNEL,type,Length,Version);
 	SendData[1] = ID[0];
 	SendData[2] = ID[1];
 	SendData[3] = ID[2];
@@ -75,7 +75,6 @@ void APP_Response_BaseInfo(unsigned char *ID,char *ECU_NO,char *TYPE,char SIGNAL
 void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_info *inverter,int validNum)
 {
 	inverter_info *curinverter = inverter;
-	unsigned char mos_a_function = 0;
 	unsigned short inverter_length = 0;
 	
 	unsigned char inverter_data[21] = {'\0'};
@@ -123,6 +122,18 @@ void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_in
 				//拼接13字节数据包
 				memcpy(&inverter_data[0],curinverter->uid,6);
 				inverter_data[6] = curinverter->status.device_Type;
+				
+				inverter_data[7] |=  curinverter->status.mos_status;
+				inverter_data[7] |=  (curinverter->status.function_status << 1);
+
+				inverter_data[8] = curinverter->heart_rate /256;
+				inverter_data[9] = curinverter->heart_rate %256;
+
+				inverter_data[10] = curinverter->off_times/256;
+				inverter_data[11] = curinverter->off_times%256;
+
+				inverter_data[12] = curinverter->restartNum;
+
 
 				
 				
@@ -132,41 +143,40 @@ void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_in
 				//拼接20字节数据包
 				memcpy(&inverter_data[0],curinverter->uid,6);
 				inverter_data[6] = curinverter->status.device_Type;
+				
+				inverter_data[7] |=  curinverter->status.mos_status;
+				inverter_data[7] |=  (curinverter->status.function_status << 1);
+				inverter_data[7] |=  (curinverter->status.pv1_low_voltage_pritection<< 2);
+				inverter_data[7] |=  (curinverter->status.pv2_low_voltage_pritection << 3);
+
+				inverter_data[8] = curinverter->heart_rate /256;
+				inverter_data[9] = curinverter->heart_rate %256;
+
+				inverter_data[10] = curinverter->off_times/256;
+				inverter_data[11] = curinverter->off_times%256;
+				
+				inverter_data[12] = curinverter->restartNum;
+
+				inverter_data[13] = curinverter->PV1;
+				inverter_data[14] = curinverter->PV2;
+				inverter_data[15] = curinverter->PI;
+				inverter_data[16] = curinverter->Power1/256;
+				inverter_data[17] = curinverter->Power1%256;
+				inverter_data[18] = curinverter->Power2/256;
+				inverter_data[19] = curinverter->Power2%256;
+				
 			}
 			
 
-			
-			memcpy(&SendData[22+i*INVERTERLENGTH],curinverter->uid,6);
-			SEGGER_RTT_printf(0, "SystemInfo %02x%02x%02x%02x%02x%02x   ",curinverter->uid[0],curinverter->uid[1],curinverter->uid[2],curinverter->uid[3],curinverter->uid[4],curinverter->uid[5]);
-			
-			SendData[28+i*INVERTERLENGTH] = curinverter->heart_rate /256;
-			SendData[29+i*INVERTERLENGTH] = curinverter->heart_rate %256;
-
-			SEGGER_RTT_printf(0, "heart_rate %d    ",curinverter->heart_rate);
-
-			SendData[30+i*INVERTERLENGTH] = curinverter->off_times/256;
-			SendData[31+i*INVERTERLENGTH] = curinverter->off_times%256;
-			SEGGER_RTT_printf(0, "off_times %d    ",curinverter->off_times);
-
-			mos_a_function = curinverter->status.mos_status;
-			if(curinverter->status.function_status !=  0)	
-			{
-				mos_a_function |= (curinverter->status.function_status << 1) ;
-			}
-			SEGGER_RTT_printf(0, "mos:%d   function %d   ",curinverter->status.mos_status,curinverter->status.function_status);
-			
-			memcpy(&SendData[32+i*INVERTERLENGTH],&mos_a_function,1);
-			memcpy(&SendData[33+i*INVERTERLENGTH],&curinverter->restartNum,1);
-			
-			SEGGER_RTT_printf(0, "mos_a_function %d\n",mos_a_function);
-			
+			memcpy(&SendData[length],inverter_data,inverter_length);
+			length += inverter_length;
 			
 			curinverter++;
 		}
 
 		if(validNum > 0)
 		{		
-			length = (16+(validNum*INVERTERLENGTH));
+			length = length - 9 + 3;
 			
 			//改变报文字节长度
 			SendData[14] = (length/1000) + '0';
