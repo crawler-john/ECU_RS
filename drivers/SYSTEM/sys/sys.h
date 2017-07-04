@@ -68,6 +68,9 @@
 
 void NVIC_Configuration(void);
 
+void RFM_init(void);	//LED³õÊ¼»¯
+void RFM_on(void);		//LEDÁÁ
+void RFM_off(void);		//LEDÏ¨Ãð
 
 
 #endif
