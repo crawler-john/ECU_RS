@@ -68,9 +68,9 @@
 
 void NVIC_Configuration(void);
 
-void RFM_init(void);	//LED初始化
-void RFM_on(void);		//LED亮
-void RFM_off(void);		//LED熄灭
+void RFM_init(void);	//RFM初始化
+void RFM_on(void);		//RFM高电平
+void RFM_off(void);		//RFM低电平
 
 
 #endif

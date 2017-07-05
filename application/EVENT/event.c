@@ -274,7 +274,7 @@ void process_WIFI(unsigned char * ID)
 				//获取基本信息
 				//获取信号强度
 				Signal_Level = ReadRssiValue(1);
-				APP_Response_BaseInfo(ID,ECUID12,VERSION_ECU_RS,Signal_Level,Signal_Channel,5,SOFEWARE_VERSION,inverterInfo,validNum);
+				APP_Response_BaseInfo(ID,ECUID12,VERSION_ECU_RS,Signal_Level,Signal_Channel,SOFEWARE_VERSION_LENGTH,SOFEWARE_VERSION,inverterInfo,validNum);
 				break;
 					
 			case COMMAND_SYSTEMINFO:			//获取系统信息			APS11002602406000000009END

@@ -1,16 +1,14 @@
 #include "sys.h"
-
-void NVIC_Configuration(void)
-{
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);	//设置NVIC中断分组2:2位抢占优先级，2位响应优先级
-
-}
-
 #include <stm32f10x.h>
 
 #define RFM_rcc                    RCC_APB2Periph_GPIOB
 #define RFM_gpio                   GPIOB
 #define RFM_pin                    (GPIO_Pin_0)
+
+void NVIC_Configuration(void)
+{
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);	//设置NVIC中断分组2:2位抢占优先级，2位响应优先级
+}
 
 void RFM_init(void)
 {
