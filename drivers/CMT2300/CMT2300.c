@@ -467,7 +467,20 @@ void Enable_fifo_restore(void)
 	val=Spi3ReadReg(CMT23_FIFO_CLR);
 	Spi3WriteReg(CMT23_FIFO_CLR,val|FIFO_RESTORE);
 }
-
+void Enable_fifo_TX(void)
+{    
+	byte val;
+	val=Spi3ReadReg(CMT23_FIFO_CTL);
+	val|=FIFO_RX_TX_SEL;
+	Spi3WriteReg(CMT23_FIFO_CTL,val);
+}
+void Enable_fifo_RX(void)
+{
+	byte val;
+	val=Spi3ReadReg(CMT23_FIFO_CTL);
+	val&=~FIFO_RX_TX_SEL;
+	Spi3WriteReg(CMT23_FIFO_CTL,val);
+}
 // merge fifo
 void Enable_fifo_merge(void)
 {
@@ -594,6 +607,7 @@ void CMT2300_init(void)
 	
 	ClearInt(0x00);
 	ClearFifo();
+	Enable_fifo_merge();
 	// enable TX_DONE ,PACKET_OK interrupt
     EnableInt(TX_DONE_EN|CRC_PASS_EN);
     //
@@ -613,7 +627,7 @@ byte SendMessage(byte *p,byte len)
 {
 	byte i=0;
 	byte val=0x00;
-
+	Enable_fifo_TX();
 	SetTxpayloadLength(len);
 
 	Enable_fifo_write();
@@ -670,7 +684,7 @@ byte GetMessage(byte *p)
 	if(RFM300H_SW==0)
 	{
 		SetOperaStatus(MODE_GO_RX);//进入接收模式
-		
+		Enable_fifo_RX();
     Enable_fifo_read();
 		do {
 			val=GetOperaStatus();
