@@ -774,7 +774,7 @@ int AT_WAP(char *ECUID12)
 	char AT[100] = { '\0' };
 	clear_WIFI();
 	//·¢ËÍ"AT+WAKEY\n",·µ»Ø+ok
-	sprintf(AT,"AT+WAP=11BGN,ECU_RS_%s,Auto\n",ECUID12);
+	sprintf(AT,"AT+WAP=11BGN,ECU_R_%s,Auto\n",ECUID12);
 	SEGGER_RTT_printf(0, "%s",AT);
 	WIFI_SendData(AT, (strlen(AT)+1));
 	
