@@ -569,6 +569,8 @@ void WIFI_GetEvent(int *messageLen,unsigned char *ID)
 					//SEGGER_RTT_printf(0, "LENGTH11111 : %d\n",PackLen);
 					//计算长度
 					eStateMachine = EN_RECV_ST_GET_DATA;
+					delay_ms(5);
+					TIM3_Int_Init(299,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
 
 					////TIM3_Int_Init(299,7199);//10Khz的计数频率，计数到5000为500ms 打开定时器
 					break;
