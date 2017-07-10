@@ -27,7 +27,7 @@ typedef struct
 	unsigned short heart_Failed_times:3; // 连续通信失败次数  ，当大于3的时候默认该RSD2为关机状态
 	unsigned short pv1_low_voltage_pritection:1;	// PV1欠压保护
 	unsigned short pv2_low_voltage_pritection:1;	// PV2欠压保护
-	unsigned short device_Type:4;					//设备类型  1:开关设备 0；监控设备
+	unsigned short device_Type:4;					//设备类型  0:开关设备 1；监控设备
 	unsigned short unused:4;						//未使用变量  备用
 }status_t;
 

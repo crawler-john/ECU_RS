@@ -58,7 +58,7 @@ void APP_Response_BaseInfo(unsigned char *ID,char *ECU_NO,char *TYPE,char SIGNAL
 	
 	
 	memset(SendData,'\0',MAXINVERTERCOUNT*INVERTERLENGTH + 16 + 9);	
-	sprintf(SendData,"a00000000APS11%04d01%s%03d%03d%s%1d%03d%sEND\n",(38+Length),ECU_NO,101,SIGNAL_LEVEL,SIGNAL_CHANNEL,type,Length,Version);
+	sprintf(SendData,"a00000000APS11%04d01%s%03d%03d%s%1d%02d%sEND\n",(37+Length),ECU_NO,101,SIGNAL_LEVEL,SIGNAL_CHANNEL,type,Length,Version);
 	SendData[1] = ID[0];
 	SendData[2] = ID[1];
 	SendData[3] = ID[2];
@@ -68,7 +68,7 @@ void APP_Response_BaseInfo(unsigned char *ID,char *ECU_NO,char *TYPE,char SIGNAL
 	SendData[7] = ID[6];
 	SendData[8] = ID[7];
 	SEGGER_RTT_printf(0, "APP_Response_BaseInfo %s\n",&SendData[9]);
-	WIFI_SendData(SendData, (47+Length));
+	WIFI_SendData(SendData, (46+Length));
 }
 
 //ECU-RS系统信息回应   mapflag   0表示匹配成功  1 表示匹配不成功
@@ -99,7 +99,7 @@ void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_in
 		return;
 	}else{				//匹配成功，发送成功命令
 		
-		sprintf(SendData,"a00000000APS1100130200");   //13字节
+		sprintf(SendData,"a00000000APS1100131200");   //13字节
 		SendData[1] = ID[0];
 		SendData[2] = ID[1];
 		SendData[3] = ID[2];
@@ -116,7 +116,7 @@ void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_in
 		for(i=0; (i<MAXINVERTERCOUNT)&&(i < validNum); i++)			
 		{
 			memset(inverter_data,0x00,21);
-			if(curinverter->status.device_Type == 1)		//开关设备
+			if(curinverter->status.device_Type == 0)		//开关设备
 			{
 				inverter_length = 13;
 				//拼接13字节数据包
@@ -137,7 +137,7 @@ void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_in
 
 				
 				
-			}else if(curinverter->status.device_Type == 0) 	//监控设备
+			}else if(curinverter->status.device_Type == 1) 	//监控设备
 			{
 				inverter_length = 20;
 				//拼接20字节数据包

@@ -175,10 +175,10 @@ int RFM300_Heart_Beat(char *ECUID,inverter_info * cur_inverter)
 		{
 			if((Recvdata[3] == 0xD0))	//监控设备
 			{
-				cur_inverter->status.device_Type = 0;		//监控设备
+				cur_inverter->status.device_Type = 1;		//监控设备
 			}else if((Recvdata[3] == 0xD1))
 			{
-				cur_inverter->status.device_Type = 1;		//开关设备
+				cur_inverter->status.device_Type = 0;		//开关设备
 			}else
 			{
 				;											//如果是其他值，保持原来的不变

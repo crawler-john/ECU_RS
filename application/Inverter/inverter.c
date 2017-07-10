@@ -59,7 +59,7 @@ int init_inverter(inverter_info *inverter)
 		curinverter->status.heart_Failed_times = 0;
 		curinverter->status.pv1_low_voltage_pritection = 0;
 		curinverter->status.pv2_low_voltage_pritection = 0;
-		curinverter->status.device_Type = 1;
+		curinverter->status.device_Type = 0;
 		curinverter->restartNum = 0;
 		curinverter->PV1 = 0;
 		curinverter->PV2 = 0;
