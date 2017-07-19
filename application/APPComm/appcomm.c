@@ -133,9 +133,6 @@ void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_in
 				inverter_data[11] = curinverter->off_times%256;
 
 				inverter_data[12] = curinverter->restartNum;
-
-
-				
 				
 			}else if(curinverter->status.device_Type == 1) 	//¼à¿ØÉè±¸
 			{

@@ -903,10 +903,10 @@ int WIFI_ChangePasswd(char *NewPasswd)
 
 int WIFI_Reset(void)
 {
-	GPIO_SetBits(WIFI_GPIO, WIFI_PIN);
-	
-	delay_ms(3000);
 	GPIO_ResetBits(WIFI_GPIO, WIFI_PIN);
+	
+	delay_ms(1000);
+	GPIO_SetBits(WIFI_GPIO, WIFI_PIN);
 	return 0;
 }
 
