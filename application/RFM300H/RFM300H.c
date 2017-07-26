@@ -29,8 +29,8 @@ int RFM300_Bind_Uid(char *ECUID,char *UID,char channel,char rate,char *ver)
 {
 	int i,check = 0;
 	unsigned char RF_leng = 0;
-	char Senddata[32] = {'\0'};
-	char Recvdata[32] = {'\0'};
+	char Senddata[64] = {'\0'};
+	char Recvdata[64] = {'\0'};
 
 	Senddata[0]=0xFB;
 	Senddata[1]=0xFB;
@@ -112,8 +112,8 @@ int RFM300_Heart_Beat(char *ECUID,inverter_info * cur_inverter)
 	char status = 0;
 	int i,check = 0;
 	unsigned char RF_leng = 0;
-	char Senddata[32] = {'\0'};
-	char Recvdata[32] = {'\0'};
+	char Senddata[64] = {'\0'};
+	char Recvdata[64] = {'\0'};
 	
 	Senddata[0]=0xFB;
 	Senddata[1]=0xFB;
@@ -159,7 +159,7 @@ int RFM300_Heart_Beat(char *ECUID,inverter_info * cur_inverter)
 		SendMessage((unsigned char *)Senddata,28);
 
 		RF_leng = GetMessage((unsigned char *)Recvdata);
-		if((RF_leng==32)&&			
+		if((RF_leng==39)&&			
 			(Senddata[4]==Recvdata[4])&&
 			(Senddata[5]==Recvdata[5])&&
 			(Senddata[6]==Recvdata[6])&&
@@ -184,24 +184,25 @@ int RFM300_Heart_Beat(char *ECUID,inverter_info * cur_inverter)
 				;											//如果是其他值，保持原来的不变
 			}
 			
-			cur_inverter->PV1 = Recvdata[16];
-			cur_inverter->PV2 = Recvdata[17];
-			cur_inverter->PI = Recvdata[18];
-			cur_inverter->Power1 = (Recvdata[19]*256) + Recvdata[20];
-			cur_inverter->Power2 = (Recvdata[21]*256) + Recvdata[22];
-			cur_inverter->off_times = Recvdata[23]*256+Recvdata[24];
-			cur_inverter->heart_rate = Recvdata[25]*256+Recvdata[26];
+			cur_inverter->PV1 = Recvdata[16] * 256 + Recvdata[17];
+			cur_inverter->PV2 = Recvdata[18] * 256 + Recvdata[19];
+			cur_inverter->PI = Recvdata[20];
+			cur_inverter->Power1 = (Recvdata[21]*256) + Recvdata[22];
+			cur_inverter->Power2 = (Recvdata[23]*256) + Recvdata[24];
+			cur_inverter->off_times = Recvdata[25]*256+Recvdata[26];
+			cur_inverter->heart_rate = Recvdata[27]*256+Recvdata[28];
 			cur_inverter->status.mos_status = 1;	//设置为开机状态
 			//采集功能状态
-			status = (Recvdata[27] & 1);
+			status = (Recvdata[29] & 1);
 			cur_inverter->status.function_status = status;
 
 			//采集PV1欠压保护状态
-			status = (Recvdata[27] & ( 1 << 1 ));
+			status = (Recvdata[29] & ( 1 << 1 ) ) >> 1;
 			cur_inverter->status.pv1_low_voltage_pritection= status;
 
 			//采集PV2欠压保护状态
-			status = (Recvdata[27] & ( 1 << 2 ));
+			status = (Recvdata[29] & ( 1 << 2 )) >> 2;
+			cur_inverter->status.pv2_low_voltage_pritection= status;
 
 			SEGGER_RTT_printf(0, "RFM300_Heart_Beat %02x%02x%02x%02x%02x%02x  dt:%d pv1:%d pv2:%d pi:%d p1:%d p2:%d ot:%d hr:%d fs:%d pv1low:%d pv2low:%d\n",Senddata[10],Senddata[11],Senddata[12],Senddata[13],Senddata[14],Senddata[15],	
 							cur_inverter->status.device_Type,cur_inverter->PV1,cur_inverter->PV2,cur_inverter->PI,cur_inverter->Power1,cur_inverter->Power2,cur_inverter->off_times,cur_inverter->heart_rate,cur_inverter->status.function_status,cur_inverter->status.pv1_low_voltage_pritection,cur_inverter->status.pv2_low_voltage_pritection);

@@ -404,8 +404,6 @@ void USART2_IRQHandler(void)                	//串口1中断服务程序
 	}
 } 
 
-
-
 void WIFI_GetEvent(int *messageLen,unsigned char *ID)
 {
 	  pos = 0;
@@ -946,9 +944,12 @@ int WIFI_SoftReset(void)
 		ret =AT_ENTM();;
 		if(ret == 0) break;
 	}
-	if(ret == -1) return -1;
+	if(ret == -1) 
+	{
+		WIFI_Reset();	
+		return -1;
+	}
 	
-	WIFI_Reset();	
 	return 0;
 }
 

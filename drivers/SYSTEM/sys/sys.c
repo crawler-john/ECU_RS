@@ -26,7 +26,7 @@ void RFM_init(void)
 
 void RFM_on(void)
 {
-		GPIO_SetBits(RFM_gpio, RFM_pin);   
+	GPIO_SetBits(RFM_gpio, RFM_pin);   
 }
 
 void RFM_off(void)

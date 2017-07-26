@@ -15,7 +15,7 @@
 /*  Definitions                                                              */
 /*****************************************************************************/
 #define MAXINVERTERCOUNT 100	//最大的逆变器数
-#define INVERTERLENGTH 20	//最大的逆变器数
+#define INVERTERLENGTH 22	//最大的逆变器数
 #pragma pack(push)  
 #pragma pack(1) 
 
@@ -39,8 +39,8 @@ typedef struct inverter_info_t{
 	status_t status;			//部分状态信息 
 	unsigned char channel;		//信道状态
 	unsigned char restartNum;	//一天内的重启次数
-	unsigned char PV1;		//PV1输入电压  精度1V
-	unsigned char PV2;		//PV2输入电压  精度 1V
+	unsigned short PV1;		//PV1输入电压  精度1V
+	unsigned short PV2;		//PV2输入电压  精度 1V
 	unsigned char PI;		//输入电流 	精度0.1A
 	unsigned short Power1;	//PV1输入功率  精度1W
 	unsigned short Power2;	//PV2输入功率  精度1W 

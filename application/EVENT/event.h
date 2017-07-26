@@ -47,6 +47,6 @@ void process_HeartBeatEvent(void);
 void process_WIFI(unsigned char * ID);
 void process_UART1Event(void);
 void process_KEYEvent(void);
-void process_WIFI_RST(void);
+int process_WIFI_RST(void);
 
 #endif /*__EVENT_H__*/

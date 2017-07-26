@@ -254,6 +254,7 @@ void process_HeartBeatEvent(void)
 			{
 				inverterInfo[curSequence].restartNum = 0;
 			}
+			comm_failed_Num = 0;
 			curSequence = 0;
 		}
 		
@@ -512,15 +513,15 @@ void process_KEYEvent(void)
 }
 
 //无线复位处理
-void process_WIFI_RST(void)
+int process_WIFI_RST(void)
 {
-	int ret =0,i = 0;
+	int ret =1,i = 0;
 	SEGGER_RTT_printf(0, "process_WIFI_RST Start\n");
 	for(i = 0;i<3;i++)
 	{
 		ret = WIFI_SoftReset();
 		if(ret == 0) break;
 	}
-	
 	SEGGER_RTT_printf(0, "process_WIFI_RST End\n");
+	return ret;
 }

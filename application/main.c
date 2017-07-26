@@ -49,7 +49,9 @@ unsigned char ID[9] = {'\0'};
 /*  Function Implementations                                                 */
 /*****************************************************************************/
 int main(void)
-{		
+{	
+	int ret = 0;
+	
 	delay_init();	    	 					//延时函数初始化	
 	NVIC_Configuration(); 				//设置NVIC中断分组2:2位抢占优先级，2位响应优先级
 	I2C_Init();										//FLASH 芯片初始化
@@ -61,16 +63,17 @@ int main(void)
 	uart1_init(57600);
 	uart2_init(57600);							//串口初始化
 	TIM2_Int_Init(4999,7199);    //心跳包超时事件定时器初始化
-	rt_hw_watchdog_init();
+	//rt_hw_watchdog_init();
 	SEGGER_RTT_printf(0, "init OK \n");
 	init_ecu();										//初始化ECU
 	init_inverter(inverterInfo);	//初始化逆变器
 #if 1
 	while(1)
-	{	
+	{
+		
 		//检测WIFI事件
 		process_WIFIEvent();
-
+		
 		//检测USART1事件
 		USART1_GetEvent(&messageUsart1Len);
 		if(USART1_Recv_Event == 1)
@@ -89,14 +92,16 @@ int main(void)
 		//WIFI复位事件
 		if(WIFI_RST_Event == 1)
 		{
-			process_WIFI_RST();
-			WIFI_RST_Event = 0;
+			ret = process_WIFI_RST();
+			if(ret == 0)
+				WIFI_RST_Event = 0;
 		}
 		
 		//判断是否有433模块心跳超时事件
 		if(COMM_Timeout_Event == 1)
 		{
-			process_HeartBeatEvent();
+			process_HeartBeatEvent();			
+			//kickwatchdog();
 			COMM_Timeout_Event = 0;
 		}
 		

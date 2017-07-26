@@ -17,7 +17,6 @@
 #include "led.h"
 #include "usart.h"
 #include "SEGGER_RTT.h"
-#include "watchdog.h"
 
 extern eRecvSM eStateMachine;
 extern unsigned short Cur;
@@ -137,7 +136,6 @@ void TIM2_IRQHandler(void)   //TIM2中断
 			timeout_WIFI_RST_Time++;
 			//产生超时时间
 			COMM_Timeout_Event = 1;
-			kickwatchdog();
 			timeout_num = 0;
 			if(ledSwitch == 1)
 			{
@@ -149,7 +147,7 @@ void TIM2_IRQHandler(void)   //TIM2中断
 					LED_off();
 				}
 			}
-			if(timeout_WIFI_RST_Time > 86400)
+			if(timeout_WIFI_RST_Time > 43200)
 			{
 				WIFI_RST_Event = 1;
 				timeout_WIFI_RST_Time = 0;

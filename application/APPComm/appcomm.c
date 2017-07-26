@@ -23,7 +23,7 @@
 /*****************************************************************************/
 /*  Variable Declarations                                                    */
 /*****************************************************************************/
-static char SendData[MAXINVERTERCOUNT*INVERTERLENGTH + 16 + 9] = {'\0'};
+static char SendData[MAXINVERTERCOUNT*INVERTERLENGTH + 17 + 9] = {'\0'};
 
 
 /*****************************************************************************/
@@ -57,7 +57,7 @@ void APP_Response_BaseInfo(unsigned char *ID,char *ECU_NO,char *TYPE,char SIGNAL
 	}
 	
 	
-	memset(SendData,'\0',MAXINVERTERCOUNT*INVERTERLENGTH + 16 + 9);	
+	memset(SendData,'\0',MAXINVERTERCOUNT*INVERTERLENGTH + 17 + 9);	
 	sprintf(SendData,"a00000000APS11%04d01%s%03d%03d%s%1d%02d%sEND\n",(37+Length),ECU_NO,101,SIGNAL_LEVEL,SIGNAL_CHANNEL,type,Length,Version);
 	SendData[1] = ID[0];
 	SendData[2] = ID[1];
@@ -68,7 +68,7 @@ void APP_Response_BaseInfo(unsigned char *ID,char *ECU_NO,char *TYPE,char SIGNAL
 	SendData[7] = ID[6];
 	SendData[8] = ID[7];
 	SEGGER_RTT_printf(0, "APP_Response_BaseInfo %s\n",&SendData[9]);
-	WIFI_SendData(SendData, (46+Length));
+	WIFI_SendData(SendData, (47+Length));
 }
 
 //ECU-RS系统信息回应   mapflag   0表示匹配成功  1 表示匹配不成功
@@ -77,10 +77,10 @@ void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_in
 	inverter_info *curinverter = inverter;
 	unsigned short inverter_length = 0;
 	
-	unsigned char inverter_data[21] = {'\0'};
+	unsigned char inverter_data[23] = {'\0'};
 	int i = 0;
 	int length = 0;
-	memset(SendData,'\0',MAXINVERTERCOUNT*INVERTERLENGTH + 16 + 9);
+	memset(SendData,'\0',MAXINVERTERCOUNT*INVERTERLENGTH + 17 + 9);
 	
 	//SEGGER_RTT_printf(0, "SystemInfo %d %d  %d\n",mapflag,validNum,(MAXINVERTERCOUNT*INVERTERLENGTH + 16));
 
@@ -115,7 +115,7 @@ void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_in
 		length = 24;
 		for(i=0; (i<MAXINVERTERCOUNT)&&(i < validNum); i++)			
 		{
-			memset(inverter_data,0x00,21);
+			memset(inverter_data,0x00,23);
 			if(curinverter->status.device_Type == 0)		//开关设备
 			{
 				inverter_length = 13;
@@ -136,7 +136,7 @@ void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_in
 				
 			}else if(curinverter->status.device_Type == 1) 	//监控设备
 			{
-				inverter_length = 20;
+				inverter_length = 22;
 				//拼接20字节数据包
 				memcpy(&inverter_data[0],curinverter->uid,6);
 				inverter_data[6] = curinverter->status.device_Type;
@@ -154,13 +154,15 @@ void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_in
 				
 				inverter_data[12] = curinverter->restartNum;
 
-				inverter_data[13] = curinverter->PV1;
-				inverter_data[14] = curinverter->PV2;
-				inverter_data[15] = curinverter->PI;
-				inverter_data[16] = curinverter->Power1/256;
-				inverter_data[17] = curinverter->Power1%256;
-				inverter_data[18] = curinverter->Power2/256;
-				inverter_data[19] = curinverter->Power2%256;
+				inverter_data[13] = curinverter->PV1/256;
+				inverter_data[14] = curinverter->PV1%256;
+				inverter_data[15] = curinverter->PV2/256;
+				inverter_data[16] = curinverter->PV2%256;
+				inverter_data[17] = curinverter->PI;
+				inverter_data[18] = curinverter->Power1/256;
+				inverter_data[19] = curinverter->Power1%256;
+				inverter_data[20] = curinverter->Power2/256;
+				inverter_data[21] = curinverter->Power2%256;
 				
 			}
 			
@@ -209,7 +211,7 @@ void APP_Response_SystemInfo(unsigned char *ID,unsigned char mapflag,inverter_in
 void APP_Response_SetNetwork(unsigned char *ID,unsigned char result)
 {
 	//char SendData[20] = {'\0'};
-	memset(SendData,'\0',MAXINVERTERCOUNT*INVERTERLENGTH + 16 + 9);	
+	memset(SendData,'\0',MAXINVERTERCOUNT*INVERTERLENGTH + 17 + 9);	
 	sprintf(SendData,"a00000000APS11001303%02d\n",result);
 	SendData[1] = ID[0];
 	SendData[2] = ID[1];
@@ -226,7 +228,7 @@ void APP_Response_SetNetwork(unsigned char *ID,unsigned char result)
 void APP_Response_SetChannel(unsigned char *ID,unsigned char mapflag,char *SIGNAL_CHANNEL,char SIGNAL_LEVEL)
 {
 	//char SendData[22] = {'\0'};
-	memset(SendData,'\0',MAXINVERTERCOUNT*INVERTERLENGTH + 16 + 9);
+	memset(SendData,'\0',MAXINVERTERCOUNT*INVERTERLENGTH + 17 + 9);
 	if(mapflag == 1)
 	{
 		sprintf(SendData,"a00000000APS1100130401\n");
@@ -257,7 +259,7 @@ void APP_Response_SetChannel(unsigned char *ID,unsigned char mapflag,char *SIGNA
 void APP_Response_SetWifiPassword(unsigned char *ID,unsigned char result)
 {
 	//char SendData[20] = {'\0'};
-	memset(SendData,'\0',MAXINVERTERCOUNT*INVERTERLENGTH + 16 + 9);
+	memset(SendData,'\0',MAXINVERTERCOUNT*INVERTERLENGTH + 17 + 9);
 	sprintf(SendData,"a00000000APS11001305%02d\n",result);
 	SendData[1] = ID[0];
 	SendData[2] = ID[1];
@@ -274,7 +276,7 @@ void APP_Response_SetWifiPassword(unsigned char *ID,unsigned char result)
 void APP_Response_IOInitStatus(unsigned char *ID,unsigned char result)
 {
 	//char SendData[20] = {'\0'};
-	memset(SendData,'\0',MAXINVERTERCOUNT*INVERTERLENGTH + 16 + 9);
+	memset(SendData,'\0',MAXINVERTERCOUNT*INVERTERLENGTH + 17 + 9);
 	sprintf(SendData,"a00000000APS11001306%02d\n",result);
 	SendData[1] = ID[0];
 	SendData[2] = ID[1];
