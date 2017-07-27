@@ -108,13 +108,16 @@ int HardwareTest(char testItem)
 
 void process_WIFIEvent(void)
 {
+	
 	//检测WIFI事件
 	WIFI_GetEvent(&messageLen,ID);
 	//判断是否有WIFI接收事件
 	if(WIFI_Recv_Event == 1)
 	{
+		SEGGER_RTT_printf(0,"WIFI_Recv_Event start\n");
 		process_WIFI(ID);
 		WIFI_Recv_Event = 0;
+		SEGGER_RTT_printf(0,"WIFI_Recv_Event end\n");
 	}
 
 }

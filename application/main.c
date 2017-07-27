@@ -69,8 +69,7 @@ int main(void)
 	init_inverter(inverterInfo);	//初始化逆变器
 #if 1
 	while(1)
-	{
-		
+	{	
 		//检测WIFI事件
 		process_WIFIEvent();
 		
@@ -78,35 +77,41 @@ int main(void)
 		USART1_GetEvent(&messageUsart1Len);
 		if(USART1_Recv_Event == 1)
 		{
+			SEGGER_RTT_printf(0,"USART1_Recv_Event start\n");
 			SEGGER_RTT_printf(0, "USART1_Recv_Event %s\n",USART1_RecvData);
 			process_UART1Event();
 			USART1_Recv_Event = 0;
+			SEGGER_RTT_printf(0,"USART1_Recv_Event end\n");
 		}
 		//检测按键事件
 		if(KEY_FormatWIFI_Event == 1)
 		{
+			SEGGER_RTT_printf(0,"KEY_FormatWIFI_Event start\n");
 			process_KEYEvent();
 			KEY_FormatWIFI_Event = 0;
+			SEGGER_RTT_printf(0,"KEY_FormatWIFI_Event end\n");
 		}
 		
 		//WIFI复位事件
 		if(WIFI_RST_Event == 1)
 		{
+			SEGGER_RTT_printf(0,"WIFI_RST_Event start\n");
 			ret = process_WIFI_RST();
 			if(ret == 0)
 				WIFI_RST_Event = 0;
+			SEGGER_RTT_printf(0,"WIFI_RST_Event end\n");
 		}
 		
 		//判断是否有433模块心跳超时事件
 		if(COMM_Timeout_Event == 1)
 		{
+			SEGGER_RTT_printf(0,"COMM_Timeout_Event start\n");
 			process_HeartBeatEvent();			
 			//kickwatchdog();
 			COMM_Timeout_Event = 0;
+			SEGGER_RTT_printf(0,"COMM_Timeout_Event end\n");
 		}
-		
-
-		
+				
 	}	
 #endif
  }
