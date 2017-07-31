@@ -301,13 +301,11 @@ void process_WIFI(unsigned char * ID)
 				if(!memcmp(&WIFI_RecvData[11],ECUID12,12))
 				{	//匹配成功进行相应的操作
 					int AddNum = 0;
-					
-							
 					AddNum = (messageLen - 29)/6;
 					SEGGER_RTT_printf(0, "COMMAND_SETNETWORK   Mapping   %d\n",AddNum);
-					//将数据写入EEPROM
-					add_inverter(inverterInfo,AddNum,(char *)&WIFI_RecvData[26]);
 					APP_Response_SetNetwork(ID,0x00);
+					//将数据写入EEPROM
+					add_inverter(inverterInfo,AddNum,(char *)&WIFI_RecvData[26]);	
 					init_inverter(inverterInfo);
 					//进行一些绑定操作
 					LED_off();
@@ -425,7 +423,7 @@ void process_UART1Event(void)
 					//设置WIFI密码
 					if(ret != 0) 	USART1_Response_SET_ID(ret);
 					Write_CHANNEL(Channel);
-					
+					Write_rebootNum(0);
 					IO_Init_Status= 1;
 					Write_IO_INIT_STATU(&IO_Init_Status);
 					//设置WIFI密码
@@ -486,6 +484,7 @@ void process_UART1Event(void)
 			case COMMAND_FACTORY:	//恢复到刚出厂的状态
 				SEGGER_RTT_printf(0, "WIFI_Recv_Event%d %s\n",COMMAND_FACTORY,USART1_RecvData);
 				ret = Write_UID_NUM(USART1_UID_NUM);
+				Write_rebootNum(0);
 				USART1_Response_FACTORY(ret);
 				init_inverter(inverterInfo);
 			

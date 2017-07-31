@@ -147,7 +147,7 @@ void TIM2_IRQHandler(void)   //TIM2ÖÐ¶Ï
 					LED_off();
 				}
 			}
-			if(timeout_WIFI_RST_Time > 43200)
+			if(timeout_WIFI_RST_Time > 86400)
 			{
 				WIFI_RST_Event = 1;
 				timeout_WIFI_RST_Time = 0;

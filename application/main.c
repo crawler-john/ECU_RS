@@ -27,6 +27,7 @@
 #include "event.h"
 #include "inverter.h"
 #include "watchdog.h"
+#include "file.h"
 
 /*****************************************************************************/
 /*  Variable Declarations                                                    */
@@ -51,6 +52,7 @@ unsigned char ID[9] = {'\0'};
 int main(void)
 {	
 	int ret = 0;
+//	unsigned reboot_num = 0;
 	
 	delay_init();	    	 					//延时函数初始化	
 	NVIC_Configuration(); 				//设置NVIC中断分组2:2位抢占优先级，2位响应优先级
@@ -63,10 +65,14 @@ int main(void)
 	uart1_init(57600);
 	uart2_init(57600);							//串口初始化
 	TIM2_Int_Init(4999,7199);    //心跳包超时事件定时器初始化
-	//rt_hw_watchdog_init();
+	rt_hw_watchdog_init();
 	SEGGER_RTT_printf(0, "init OK \n");
 	init_ecu();										//初始化ECU
 	init_inverter(inverterInfo);	//初始化逆变器
+	
+//	Read_rebootNum(&reboot_num);
+//	Write_rebootNum((reboot_num+1));	
+//	SEGGER_RTT_printf(0,"reboot num:%d\n",reboot_num);
 #if 1
 	while(1)
 	{	
@@ -77,6 +83,7 @@ int main(void)
 		USART1_GetEvent(&messageUsart1Len);
 		if(USART1_Recv_Event == 1)
 		{
+//			SEGGER_RTT_printf(0,"reboot num:%d\n",reboot_num);
 			SEGGER_RTT_printf(0,"USART1_Recv_Event start\n");
 			SEGGER_RTT_printf(0, "USART1_Recv_Event %s\n",USART1_RecvData);
 			process_UART1Event();
@@ -107,7 +114,7 @@ int main(void)
 		{
 			SEGGER_RTT_printf(0,"COMM_Timeout_Event start\n");
 			process_HeartBeatEvent();			
-			//kickwatchdog();
+			kickwatchdog();
 			COMM_Timeout_Event = 0;
 			SEGGER_RTT_printf(0,"COMM_Timeout_Event end\n");
 		}
