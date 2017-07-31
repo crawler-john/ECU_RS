@@ -224,8 +224,8 @@ int RFM300_Status_Init(char *ECUID,char *UID,char Heart_Function,char Device_Typ
 	unsigned char Status = 0;
 	int i,check = 0;
 	unsigned char RF_leng = 0;
-	char Senddata[32] = {'\0'};
-	char Recvdata[32] = {'\0'};
+	char Senddata[64] = {'\0'};
+	char Recvdata[64] = {'\0'};
 	
 	Senddata[0]=0xFB;
 	Senddata[1]=0xFB;
@@ -315,8 +315,8 @@ int RFM300_Set_Uid(char *ECUID,char *UID,int channel,int rate,char *NewUid,char 
 {
 	int i,check = 0;
 	unsigned char RF_leng = 0;
-	char Senddata[32] = {'\0'};
-	char Recvdata[32] = {'\0'};
+	char Senddata[64] = {'\0'};
+	char Recvdata[64] = {'\0'};
 
 	Senddata[0]=0xFB;
 	Senddata[1]=0xFB;

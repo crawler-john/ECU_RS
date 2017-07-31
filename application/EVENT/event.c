@@ -399,7 +399,7 @@ void process_UART1Event(void)
 	char USART1_ECUID12[13] = {'\0'};
 	char USART1_ECUID6[7] = {'\0'};
 	char USART1_UID_NUM[2] = {0x00,0x00};
-	char Channel[2] = "02";
+	char Channel[2] = "01";
 	char ret =0;
 	char testItem = 0;
 	int AddNum = 0;
