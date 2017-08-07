@@ -164,6 +164,11 @@ void process_HeartBeatEvent(void)
 						inverterInfo[curSequence].status.heart_Failed_times = 0;
 					}
 					
+				}else
+				{
+					//绑定失败，所以可能不在该信道下  需要进行全局的查找
+					inverterInfo[curSequence].status.channel_failed = 1;
+					
 				}
 			}
 			inverterInfo[curSequence].status.heart_Failed_times++;
@@ -240,11 +245,55 @@ void process_HeartBeatEvent(void)
 						inverterInfo[curSequence].channel = Channel_char;
 					}
 				}
+				else
+				{
+					//绑定失败，所以可能不在该信道下  需要进行全局的查找
+					inverterInfo[curSequence].status.channel_failed = 1;
+				}
 				
 				//更改到系统信道
 				setChannel(Channel_char);
 			}		
 		}
+		process_WIFIEvent();
+		//在修改信道失败的情况下，需要在所有信道下查找，并改到需要的信道
+		if(inverterInfo[curSequence].status.channel_failed == 1)
+		{
+			//在所有信道下查找	
+			inverterInfo[curSequence].find_channel += 1;
+			if(inverterInfo[curSequence].find_channel > 16)
+			{
+				inverterInfo[curSequence].find_channel = 1;
+			}
+
+			
+			//先变更到需要查找的信道，尝试改变信道到当前信道
+			setChannel(inverterInfo[curSequence].find_channel);
+				
+			//发送更改信道报文
+			ret = RFM300_Bind_Uid(ECUID6,(char *)inverterInfo[curSequence].uid,Channel_char,0,&ver);
+			if(ret == 1)	//设置信道成功
+			{
+				if(Write_UID_Channel(Channel_char,(curSequence+1)) == 0)
+				{
+					SEGGER_RTT_printf(0, "change Channel %02x%02x%02x%02x%02x%02x  Channel_char:%d   inverterInfo[curSequence].channel:%d\n",inverterInfo[curSequence].uid[0],inverterInfo[curSequence].uid[1],inverterInfo[curSequence].uid[2],inverterInfo[curSequence].uid[3],inverterInfo[curSequence].uid[4],inverterInfo[curSequence].uid[5],Channel_char,inverterInfo[curSequence].channel);
+					inverterInfo[curSequence].channel = Channel_char;
+				}
+				inverterInfo[curSequence].status.channel_failed = 0;
+				inverterInfo[curSequence].find_channel = 0;
+			}
+			else
+			{
+				//绑定失败，所以可能不在该信道下  需要进行全局的查找
+				inverterInfo[curSequence].status.channel_failed = 1;
+			}
+				
+			//更改到系统信道
+			setChannel(Channel_char);
+	
+			
+		}
+
 		
 		curSequence++;
 		

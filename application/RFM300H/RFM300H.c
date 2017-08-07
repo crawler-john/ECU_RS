@@ -17,6 +17,9 @@
 #include "delay.h"
 #include "string.h"
 
+volatile unsigned int Heart_times = 0;
+volatile unsigned int TimeOut_times = 0;
+
 /*****************************************************************************/
 /*  Definitions                                                              */
 /*****************************************************************************/
@@ -131,14 +134,14 @@ int RFM300_Heart_Beat(char *ECUID,inverter_info * cur_inverter)
 	Senddata[13]=cur_inverter->uid[3];
 	Senddata[14]=cur_inverter->uid[4];
 	Senddata[15]=cur_inverter->uid[5];
-	Senddata[16]=0x00;
-	Senddata[17]=0x00;
-	Senddata[18]=0x00;
-	Senddata[19]=0x00;
-	Senddata[20]=0x00;
-	Senddata[21]=0x00;
-	Senddata[22]=0x00;
-	Senddata[23]=0x00;
+	Senddata[16]=(Heart_times/16777216)%256;
+	Senddata[17]=(Heart_times/65536)%256;
+	Senddata[18]=(Heart_times/256)%256;
+	Senddata[19]=(Heart_times)%256;
+	Senddata[20]=(TimeOut_times/16777216)%256;
+	Senddata[21]=(TimeOut_times/65536)%256;
+	Senddata[22]=(TimeOut_times/256)%256;
+	Senddata[23]=(TimeOut_times)%256;
 	
 	for(i=3;i<(3+Senddata[2]);i++)
 		check=check+Senddata[i];
@@ -173,6 +176,7 @@ int RFM300_Heart_Beat(char *ECUID,inverter_info * cur_inverter)
 			(Senddata[14]==Recvdata[14])&&
 			(Senddata[15]==Recvdata[15]))
 		{
+			Heart_times++;
 			if((Recvdata[3] == 0xD0))	//监控设备
 			{
 				cur_inverter->status.device_Type = 1;		//监控设备
@@ -187,29 +191,32 @@ int RFM300_Heart_Beat(char *ECUID,inverter_info * cur_inverter)
 			cur_inverter->PV1 = Recvdata[16] * 256 + Recvdata[17];
 			cur_inverter->PV2 = Recvdata[18] * 256 + Recvdata[19];
 			cur_inverter->PI = Recvdata[20];
-			cur_inverter->Power1 = (Recvdata[21]*256) + Recvdata[22];
-			cur_inverter->Power2 = (Recvdata[23]*256) + Recvdata[24];
-			cur_inverter->off_times = Recvdata[25]*256+Recvdata[26];
-			cur_inverter->heart_rate = Recvdata[27]*256+Recvdata[28];
+			cur_inverter->PV_Output = (Recvdata[21]*256) + Recvdata[22];
+			cur_inverter->Power1 = (Recvdata[23]*256) + Recvdata[24];
+			cur_inverter->Power2 = (Recvdata[25]*256) + Recvdata[26];
+			cur_inverter->off_times = Recvdata[27]*256+Recvdata[28];
+			cur_inverter->heart_rate = Recvdata[29]*256+Recvdata[30];
 			cur_inverter->status.mos_status = 1;	//设置为开机状态
 			//采集功能状态
-			status = (Recvdata[29] & 1);
+			status = (Recvdata[31] & 1);
 			cur_inverter->status.function_status = status;
 
 			//采集PV1欠压保护状态
-			status = (Recvdata[29] & ( 1 << 1 ) ) >> 1;
+			status = (Recvdata[31] & ( 1 << 1 ) ) >> 1;
 			cur_inverter->status.pv1_low_voltage_pritection= status;
 
 			//采集PV2欠压保护状态
-			status = (Recvdata[29] & ( 1 << 2 )) >> 2;
+			status = (Recvdata[31] & ( 1 << 2 )) >> 2;
 			cur_inverter->status.pv2_low_voltage_pritection= status;
-
+			cur_inverter->RSSI = Recvdata[32];
+	
 			SEGGER_RTT_printf(0, "RFM300_Heart_Beat %02x%02x%02x%02x%02x%02x  dt:%d pv1:%d pv2:%d pi:%d p1:%d p2:%d ot:%d hr:%d fs:%d pv1low:%d pv2low:%d\n",Senddata[10],Senddata[11],Senddata[12],Senddata[13],Senddata[14],Senddata[15],	
 							cur_inverter->status.device_Type,cur_inverter->PV1,cur_inverter->PV2,cur_inverter->PI,cur_inverter->Power1,cur_inverter->Power2,cur_inverter->off_times,cur_inverter->heart_rate,cur_inverter->status.function_status,cur_inverter->status.pv1_low_voltage_pritection,cur_inverter->status.pv2_low_voltage_pritection);
 			return 1;
 		}
 		else
 		{
+			TimeOut_times++;
 			delay_ms(20);
 			continue;
 		}

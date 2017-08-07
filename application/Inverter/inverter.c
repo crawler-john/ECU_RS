@@ -20,6 +20,9 @@
 #include "string.h"
 #include "led.h"
 
+extern unsigned int Heart_times;
+extern unsigned int TimeOut_times;
+
 /*****************************************************************************/
 /*  Function Implementations                                                 */
 /*****************************************************************************/
@@ -47,7 +50,8 @@ int init_inverter(inverter_info *inverter)
 	inverter_info *curinverter = inverter;
 	UID_NUM[0] = 0;
 	UID_NUM[1] = 0;
-	
+	Heart_times = 0;
+	TimeOut_times = 0;
 	//???¨´¨®D¦Ì???¡À??¡Â????
 	for(i=0; i<MAXINVERTERCOUNT; i++, curinverter++)
 	{
@@ -60,12 +64,16 @@ int init_inverter(inverter_info *inverter)
 		curinverter->status.pv1_low_voltage_pritection = 0;
 		curinverter->status.pv2_low_voltage_pritection = 0;
 		curinverter->status.device_Type = 0;
+		curinverter->status.channel_failed = 0;
 		curinverter->restartNum = 0;
 		curinverter->PV1 = 0;
 		curinverter->PV2 = 0;
 		curinverter->PI = 0;
 		curinverter->Power1 = 0;
 		curinverter->Power2 = 0;
+		curinverter->PV_Output = 0;
+		curinverter->RSSI = 0;
+		curinverter->find_channel = 0;
 	}
 	
 	//¡ä¨®EEPROM?D?¨¢¨¨???¡À??¡ÂD??¡é
